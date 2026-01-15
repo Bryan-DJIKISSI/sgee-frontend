@@ -9,6 +9,7 @@ import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import VerifyEmail from './pages/auth/VerifyEmail'
 import Dashboard from './pages/Dashboard'
+import ConcoursAvailable from './pages/ConcoursAvailable'
 import EcolesList from './pages/EcolesList'
 import EnrollmentForm from './pages/EnrollmentForm'
 import MyEnrollments from './pages/MyEnrollments'
@@ -37,6 +38,11 @@ function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/concours" element={
+              <ProtectedRoute>
+                <ConcoursAvailable />
               </ProtectedRoute>
             } />
             <Route path="/ecoles" element={
