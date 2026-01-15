@@ -33,6 +33,11 @@ export const enrollmentService = {
     return response.data
   },
 
+  validate: async (id: number): Promise<ApiResponse<Enrollement>> => {
+    const response = await api.put<ApiResponse<Enrollement>>(`/enrollements/${id}/validate`)
+    return response.data
+  },
+
   validatePayment: async (id: number): Promise<ApiResponse<Enrollement>> => {
     const response = await api.put<ApiResponse<Enrollement>>(`/enrollements/${id}/validate`)
     return response.data
