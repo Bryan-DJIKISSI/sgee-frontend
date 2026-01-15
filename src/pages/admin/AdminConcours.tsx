@@ -2,28 +2,13 @@ import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Search, BookOpen, Calendar } from 'lucide-react'
 import { toast } from 'react-toastify'
 import AdminLayout from '../../components/AdminLayout'
+import { concoursService, type Concours } from '../../services/concoursService'
+import { ecoleService } from '../../services/ecoleService'
 
 interface Ecole {
   id_ecole: number
   nom_ecole: string
   sigle?: string
-}
-
-interface Concours {
-  id_concours: number
-  intitule: string
-  description?: string
-  date_debut: string
-  date_fin: string
-  date_limite_inscription: string
-  date_limite_paiement: string
-  date_limite_depot: string
-  id_ecole: number
-  ecole?: Ecole
-  niveau_requis: string
-  frais_inscription: number
-  places_disponibles: number
-  statut: string
 }
 
 const AdminConcours = () => {
@@ -54,11 +39,16 @@ const AdminConcours = () => {
 
   const loadData = async () => {
     try {
-      // TODO: Charger depuis l'API
-      setEcoles([])
-      setConcours([])
+      const [ecolesRes, concoursRes] = await Promise.all([
+        ecoleService.getAll(),
+        concoursService.getAll()
+      ])
+      
+      setEcoles(ecolesRes.data || [])
+      setConcours(concoursRes.data || [])
     } catch (error) {
       console.error('Erreur chargement:', error)
+      toast.error('Erreur lors du chargement des données')
     } finally {
       setLoading(false)
     }
@@ -69,13 +59,20 @@ const AdminConcours = () => {
     setLoading(true)
 
     try {
-      // TODO: Appeler l'API
-      toast.success(editingConcours ? 'Concours modifié' : 'Concours créé')
+      if (editingConcours) {
+        await concoursService.update(editingConcours.id_concours, formData)
+        toast.success('Concours modifié avec succès')
+      } else {
+        await concoursService.create(formData)
+        toast.success('Concours créé avec succès')
+      }
+
       setShowModal(false)
       resetForm()
       loadData()
     } catch (error: any) {
-      toast.error('Erreur lors de l\'opération')
+      console.error('Erreur:', error)
+      toast.error(error.response?.data?.message || 'Erreur lors de l\'opération')
     } finally {
       setLoading(false)
     }
@@ -104,8 +101,8 @@ const AdminConcours = () => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce concours ?')) return
 
     try {
-      // TODO: Appeler l'API
-      toast.success('Concours supprimé')
+      await concoursService.delete(id)
+      toast.success('Concours supprimé avec succès')
       loadData()
     } catch (error) {
       toast.error('Erreur lors de la suppression')

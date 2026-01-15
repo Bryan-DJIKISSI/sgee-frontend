@@ -2,24 +2,13 @@ import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Search, MapPin, Building } from 'lucide-react'
 import { toast } from 'react-toastify'
 import AdminLayout from '../../components/AdminLayout'
-
-interface Centre {
-  id_centre: number
-  nom_centre: string
-  adresse: string
-  ville: string
-  region: string
-  latitude?: string
-  longitude?: string
-  capacite?: number
-  type: 'depot' | 'examen'
-}
+import { centreService, type Centre } from '../../services/centreService'
 
 const AdminCentres = () => {
-  const [centres, setCentres] = useState<Centre[]>([])
+  const [centres, setCentres] = useState<(Centre & { type: 'depot' | 'examen' })[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [editingCentre, setEditingCentre] = useState<Centre | null>(null)
+  const [editingCentre, setEditingCentre] = useState<(Centre & { type: 'depot' | 'examen' }) | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'depot' | 'examen'>('all')
   const [formData, setFormData] = useState({
@@ -44,8 +33,15 @@ const AdminCentres = () => {
 
   const loadCentres = async () => {
     try {
-      // TODO: Charger depuis l'API
-      setCentres([])
+      const [depotsRes, examsRes] = await Promise.all([
+        centreService.getDepots(),
+        centreService.getExams()
+      ])
+      
+      const depots = (depotsRes.data || []).map(c => ({ ...c, type: 'depot' as const }))
+      const exams = (examsRes.data || []).map(c => ({ ...c, type: 'examen' as const }))
+      
+      setCentres([...depots, ...exams])
     } catch (error) {
       console.error('Erreur chargement centres:', error)
       toast.error('Erreur lors du chargement des centres')
@@ -59,25 +55,51 @@ const AdminCentres = () => {
     setLoading(true)
 
     try {
-      // TODO: Appeler l'API
-      toast.success(editingCentre ? 'Centre modifié' : 'Centre créé')
+      const data = {
+        nom_centre: formData.nom_centre,
+        lieu_centre: formData.ville, // Using ville as lieu_centre
+        adresse: formData.adresse,
+        ville: formData.ville,
+        region: formData.region,
+        latitude: formData.latitude || null,
+        longitude: formData.longitude || null,
+        capacite: formData.capacite ? parseInt(formData.capacite) : null,
+      }
+
+      if (editingCentre) {
+        if (formData.type === 'depot') {
+          await centreService.updateDepot(editingCentre.id_centre, data)
+        } else {
+          await centreService.updateExam(editingCentre.id_centre, data)
+        }
+        toast.success('Centre modifié avec succès')
+      } else {
+        if (formData.type === 'depot') {
+          await centreService.createDepot(data)
+        } else {
+          await centreService.createExam(data)
+        }
+        toast.success('Centre créé avec succès')
+      }
+
       setShowModal(false)
       resetForm()
       loadCentres()
     } catch (error: any) {
-      toast.error('Erreur lors de l\'opération')
+      console.error('Erreur:', error)
+      toast.error(error.response?.data?.message || 'Erreur lors de l\'opération')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleEdit = (centre: Centre) => {
+  const handleEdit = (centre: Centre & { type: 'depot' | 'examen' }) => {
     setEditingCentre(centre)
     setFormData({
       nom_centre: centre.nom_centre,
-      adresse: centre.adresse,
-      ville: centre.ville,
-      region: centre.region,
+      adresse: centre.adresse || '',
+      ville: centre.ville || '',
+      region: centre.region || '',
       latitude: centre.latitude || '',
       longitude: centre.longitude || '',
       capacite: centre.capacite?.toString() || '',
@@ -86,12 +108,16 @@ const AdminCentres = () => {
     setShowModal(true)
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number, type: 'depot' | 'examen') => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce centre ?')) return
 
     try {
-      // TODO: Appeler l'API
-      toast.success('Centre supprimé')
+      if (type === 'depot') {
+        await centreService.deleteDepot(id)
+      } else {
+        await centreService.deleteExam(id)
+      }
+      toast.success('Centre supprimé avec succès')
       loadCentres()
     } catch (error) {
       toast.error('Erreur lors de la suppression')
@@ -169,7 +195,59 @@ const AdminCentres = () => {
           </div>
         </div>
 
-        {filteredCentres.length === 0 && !loading && (
+        {/* Centres List */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCentres.map((centre) => (
+            <div
+              key={`${centre.type}-${centre.id_centre}`}
+              className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    centre.type === 'depot' ? 'bg-blue-100' : 'bg-green-100'
+                  }`}>
+                    {centre.type === 'depot' ? (
+                      <Building className={`h-6 w-6 ${centre.type === 'depot' ? 'text-blue-600' : 'text-green-600'}`} />
+                    ) : (
+                      <MapPin className="h-6 w-6 text-green-600" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">{centre.nom_centre}</h3>
+                    <p className="text-sm text-gray-600">
+                      {centre.type === 'depot' ? 'Centre de Dépôt' : 'Centre d\'Examen'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-sm text-gray-600 mb-4">
+                {centre.ville && <p>📍 {centre.ville}</p>}
+                {centre.region && <p>🗺️ {centre.region}</p>}
+                {centre.adresse && <p className="text-xs">📮 {centre.adresse}</p>}
+                {centre.capacite && <p>👥 Capacité: {centre.capacite}</p>}
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleEdit(centre as any)}
+                  className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Modifier
+                </button>
+                <button
+                  onClick={() => handleDelete(centre.id_centre, centre.type)}
+                  className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
           <div className="text-center py-12 bg-white rounded-xl shadow-md">
             <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">Aucun centre</h3>
