@@ -16,6 +16,7 @@ import MyEnrollments from './pages/MyEnrollments'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminEcoles from './pages/admin/AdminEcoles'
 import AdminConcours from './pages/admin/AdminConcours'
+import AdminCentres from './pages/admin/AdminCentres'
 import AdminEnrollments from './pages/admin/AdminEnrollments'
 
 // Components
@@ -75,6 +76,11 @@ function App() {
             <Route path="/admin/concours" element={
               <AdminRoute>
                 <AdminConcours />
+              </AdminRoute>
+            } />
+            <Route path="/admin/centres" element={
+              <AdminRoute>
+                <AdminCentres />
               </AdminRoute>
             } />
             <Route path="/admin/enrollments" element={

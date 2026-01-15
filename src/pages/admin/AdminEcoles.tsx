@@ -30,6 +30,8 @@ const AdminEcoles = () => {
     telephone: '',
     email: '',
     description: '',
+    latitude: '',
+    longitude: '',
   })
   const [logoFile, setLogoFile] = useState<File | null>(null)
 
@@ -92,6 +94,8 @@ const AdminEcoles = () => {
       telephone: ecole.telephone || '',
       email: ecole.email || '',
       description: ecole.description || '',
+      latitude: (ecole as any).latitude || '',
+      longitude: (ecole as any).longitude || '',
     })
     setShowModal(true)
   }
@@ -117,6 +121,8 @@ const AdminEcoles = () => {
       telephone: '',
       email: '',
       description: '',
+      latitude: '',
+      longitude: '',
     })
     setLogoFile(null)
     setEditingEcole(null)
@@ -334,6 +340,34 @@ const AdminEcoles = () => {
                   onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Latitude
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.latitude}
+                    onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Ex: 3.8480"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Longitude
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.longitude}
+                    onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Ex: 11.5021"
+                  />
+                </div>
               </div>
 
               <div>

@@ -46,14 +46,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       path: '/admin/concours',
     },
     {
+      title: 'Centres',
+      icon: Users,
+      path: '/admin/centres',
+    },
+    {
       title: 'Inscriptions',
       icon: FileText,
       path: '/admin/enrollments',
-    },
-    {
-      title: 'Candidats',
-      icon: Users,
-      path: '/admin/candidats',
     },
     {
       title: 'Paramètres',
