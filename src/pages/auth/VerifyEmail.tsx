@@ -27,26 +27,35 @@ const VerifyEmail = () => {
     try {
       const response = await authService.verifyEmail(data.email, data.code)
       
+      console.log('Verification response:', response)
+      
       // Si le backend retourne un token, on connecte automatiquement l'utilisateur
       if (response.token && response.user) {
-        // Utiliser la fonction login du contexte pour mettre à jour l'état
+        // Stocker le token et l'utilisateur
         localStorage.setItem('token', response.token)
         localStorage.setItem('user', JSON.stringify(response.user))
         
-        // Forcer le rechargement de la page pour mettre à jour le contexte
+        console.log('Token stored:', response.token)
+        console.log('User stored:', response.user)
+        console.log('User role:', response.user.role)
+        
         toast.success('Email vérifié avec succès ! Bienvenue 🎉')
         
-        // Vérifier le rôle et rediriger
-        if (response.user.role?.intitule === 'ADMIN') {
-          window.location.href = '/admin'
-        } else {
-          window.location.href = '/concours'
-        }
+        // Attendre un peu puis recharger la page pour mettre à jour le contexte
+        setTimeout(() => {
+          // Vérifier le rôle et rediriger avec rechargement complet
+          if (response.user.role?.intitule === 'ADMIN') {
+            window.location.href = '/admin'
+          } else {
+            window.location.href = '/dashboard'
+          }
+        }, 500)
       } else {
         toast.success('Email vérifié avec succès !')
         navigate('/login')
       }
     } catch (error: any) {
+      console.error('Verification error:', error)
       toast.error(error.response?.data?.message || 'Code invalide')
     } finally {
       setLoading(false)

@@ -138,6 +138,11 @@ const Register = () => {
           <p className="text-gray-600">
             Rejoignez des milliers de candidats qui nous font confiance
           </p>
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 inline-block">
+            <p className="text-sm text-blue-800">
+              👤 <strong>Inscription Candidat</strong> - Les comptes administrateurs sont créés séparément
+            </p>
+          </div>
           <p className="mt-4 text-sm text-gray-600">
             Déjà inscrit ?{' '}
             <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
