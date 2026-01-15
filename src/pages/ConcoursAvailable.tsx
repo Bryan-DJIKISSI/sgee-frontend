@@ -11,26 +11,8 @@ import {
   Filter
 } from 'lucide-react'
 import DashboardLayout from '../components/DashboardLayout'
-
-interface Concours {
-  id_concours: number
-  intitule: string
-  description?: string
-  date_debut: string
-  date_fin: string
-  date_limite_inscription: string
-  date_limite_paiement: string
-  date_limite_depot: string
-  ecole: {
-    id_ecole: number
-    nom_ecole: string
-    logo_path?: string
-  }
-  niveau_requis: string
-  frais_inscription: number
-  places_disponibles: number
-  statut: string
-}
+import { concoursService, type Concours } from '../services/concoursService'
+import { toast } from 'react-toastify'
 
 const ConcoursAvailable = () => {
   const [concours, setConcours] = useState<Concours[]>([])
@@ -43,51 +25,11 @@ const ConcoursAvailable = () => {
 
   const loadConcours = async () => {
     try {
-      // TODO: Appeler l'API
-      // const response = await concoursService.getAvailable()
-      // setConcours(response.data)
-      
-      // Données de test
-      setConcours([
-        {
-          id_concours: 1,
-          intitule: 'Concours ENSP Cycle Ingénieur 2026',
-          description: 'Concours d\'entrée en première année du cycle ingénieur',
-          date_debut: '2026-06-15',
-          date_fin: '2026-06-17',
-          date_limite_inscription: '2026-05-01',
-          date_limite_paiement: '2026-04-25',
-          date_limite_depot: '2026-05-10',
-          ecole: {
-            id_ecole: 1,
-            nom_ecole: 'École Nationale Supérieure Polytechnique',
-          },
-          niveau_requis: 'Baccalauréat série C, D, E',
-          frais_inscription: 25000,
-          places_disponibles: 150,
-          statut: 'ouvert',
-        },
-        {
-          id_concours: 2,
-          intitule: 'Concours ENAM Cycle A 2026',
-          description: 'Formation des Administrateurs Civils',
-          date_debut: '2026-07-01',
-          date_fin: '2026-07-03',
-          date_limite_inscription: '2026-05-15',
-          date_limite_paiement: '2026-05-10',
-          date_limite_depot: '2026-05-25',
-          ecole: {
-            id_ecole: 2,
-            nom_ecole: 'École Nationale d\'Administration et de Magistrature',
-          },
-          niveau_requis: 'Licence (Bac+3)',
-          frais_inscription: 30000,
-          places_disponibles: 60,
-          statut: 'ouvert',
-        },
-      ])
+      const response = await concoursService.getAvailable()
+      setConcours(response.data || [])
     } catch (error) {
       console.error('Erreur chargement concours:', error)
+      toast.error('Erreur lors du chargement des concours')
     } finally {
       setLoading(false)
     }
