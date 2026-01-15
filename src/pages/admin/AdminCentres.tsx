@@ -248,6 +248,8 @@ const AdminCentres = () => {
             </div>
           ))}
         </div>
+
+        {filteredCentres.length === 0 && !loading && (
           <div className="text-center py-12 bg-white rounded-xl shadow-md">
             <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">Aucun centre</h3>
