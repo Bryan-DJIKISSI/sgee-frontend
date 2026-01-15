@@ -18,6 +18,27 @@ interface Ecole {
   logo_path?: string
 }
 
+interface Concours {
+  id_concours: number
+  intitule: string
+  description?: string
+  date_debut: string
+  date_fin: string
+  date_limite_inscription: string
+  date_limite_paiement: string
+  date_limite_depot: string
+  id_ecole: number
+  ecole?: {
+    id_ecole: number
+    nom_ecole: string
+    sigle?: string
+  }
+  niveau_requis: string
+  frais_inscription: number
+  places_disponibles: number
+  statut: string
+}
+
 interface Region {
   nom: string
   code: string
@@ -43,6 +64,7 @@ const EnrollmentForm = () => {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [ecole, setEcole] = useState<Ecole | null>(null)
+  const [concours, setConcours] = useState<Concours | null>(null)
   const [loadingEcole, setLoadingEcole] = useState(true)
   const [regions, setRegions] = useState<Region[]>([])
   const [departements, setDepartements] = useState<string[]>([])
@@ -55,6 +77,7 @@ const EnrollmentForm = () => {
   })
 
   const ecoleId = searchParams.get('ecole')
+  const concoursId = searchParams.get('concours')
   const selectedRegion = watch('region_origine')
 
   useEffect(() => {
@@ -64,7 +87,12 @@ const EnrollmentForm = () => {
     } else {
       setLoadingEcole(false)
     }
-  }, [ecoleId])
+    
+    // Charger le concours si l'ID est fourni
+    if (concoursId) {
+      loadConcours(parseInt(concoursId))
+    }
+  }, [ecoleId, concoursId])
 
   useEffect(() => {
     if (selectedRegion) {
@@ -112,11 +140,85 @@ const EnrollmentForm = () => {
     }
   }
 
+  const loadConcours = async (id: number) => {
+    try {
+      const response = await concoursService.getById(id)
+      if (response.success && response.data) {
+        const concoursData = response.data
+        setConcours(concoursData)
+        
+        // Vérifier que le concours appartient bien à l'école sélectionnée
+        if (ecoleId && concoursData.id_ecole !== parseInt(ecoleId)) {
+          toast.error(
+            `Ce concours est pour ${concoursData.ecole?.nom_ecole}, pas pour l'école sélectionnée. Vous allez être redirigé.`,
+            { autoClose: 5000 }
+          )
+          setTimeout(() => {
+            navigate('/concours')
+          }, 3000)
+        }
+        
+        // Vérifier que le concours est ouvert
+        if (concoursData.statut !== 'ouvert') {
+          toast.warning(
+            `Ce concours est actuellement ${concoursData.statut}. Les inscriptions ne sont pas disponibles.`,
+            { autoClose: 5000 }
+          )
+          setTimeout(() => {
+            navigate('/concours')
+          }, 3000)
+        }
+        
+        // Vérifier que la date limite d'inscription n'est pas dépassée
+        const dateLimite = new Date(concoursData.date_limite_inscription)
+        const now = new Date()
+        if (now > dateLimite) {
+          toast.error(
+            'La date limite d\'inscription pour ce concours est dépassée.',
+            { autoClose: 5000 }
+          )
+          setTimeout(() => {
+            navigate('/concours')
+          }, 3000)
+        }
+      }
+    } catch (error) {
+      console.error('Erreur chargement concours:', error)
+      toast.error('Erreur lors du chargement du concours')
+    }
+  }
+
   const onSubmit = async (data: EnrollmentFormData) => {
+    // Vérifier à nouveau que le concours est valide avant de soumettre
+    if (concoursId && concours) {
+      if (concours.id_ecole !== parseInt(ecoleId || '0')) {
+        toast.error('Le concours ne correspond pas à l\'école sélectionnée')
+        return
+      }
+      
+      if (concours.statut !== 'ouvert') {
+        toast.error('Ce concours n\'est pas ouvert aux inscriptions')
+        return
+      }
+      
+      const dateLimite = new Date(concours.date_limite_inscription)
+      const now = new Date()
+      if (now > dateLimite) {
+        toast.error('La date limite d\'inscription est dépassée')
+        return
+      }
+    }
+    
     setLoading(true)
     try {
       const formData = new FormData()
       formData.append('id_ecole', ecoleId || '')
+      
+      // Ajouter l'ID du concours si disponible
+      if (concoursId) {
+        formData.append('id_concours', concoursId)
+      }
+      
       formData.append('region_origine', data.region_origine)
       formData.append('departement_origine', data.departement_origine)
       formData.append('centre_depot_nom', data.centre_depot_nom)
@@ -177,6 +279,32 @@ const EnrollmentForm = () => {
     )
   }
 
+  // Avertissement si aucun concours n'est sélectionné
+  if (!concoursId) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-amber-50 rounded-2xl shadow-lg p-12 text-center border-2 border-amber-200">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <School className="h-8 w-8 text-amber-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Concours non sélectionné</h3>
+            <p className="text-gray-700 mb-6">
+              Pour vous inscrire, vous devez d'abord sélectionner un concours spécifique. 
+              Veuillez retourner à la liste des concours disponibles et choisir celui auquel vous souhaitez participer.
+            </p>
+            <button
+              onClick={() => navigate('/concours')}
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+            >
+              Voir les concours disponibles
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto space-y-8">
@@ -188,7 +316,7 @@ const EnrollmentForm = () => {
               {ecole.logo_path ? (
                 <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center overflow-hidden">
                   <img 
-                    src={`${import.meta.env.VITE_API_URL}/storage/${ecole.logo_path}`} 
+                    src={`http://localhost:8000/storage/${ecole.logo_path}`}
                     alt={ecole.nom_ecole}
                     className="w-full h-full object-cover"
                   />
@@ -203,9 +331,30 @@ const EnrollmentForm = () => {
                 {ecole.sigle && <p className="text-white/90">{ecole.sigle}</p>}
               </div>
             </div>
-            <p className="text-xl text-white/90">
-              Formulaire d'inscription au concours
-            </p>
+            
+            {concours ? (
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mt-4 border border-white/20">
+                <p className="text-xl text-white font-semibold mb-2">{concours.intitule}</p>
+                <div className="grid md:grid-cols-3 gap-4 text-sm text-white/90">
+                  <div>
+                    <span className="block text-white/70">Date du concours</span>
+                    <span className="font-semibold">{new Date(concours.date_debut).toLocaleDateString('fr-FR')}</span>
+                  </div>
+                  <div>
+                    <span className="block text-white/70">Inscription avant</span>
+                    <span className="font-semibold">{new Date(concours.date_limite_inscription).toLocaleDateString('fr-FR')}</span>
+                  </div>
+                  <div>
+                    <span className="block text-white/70">Frais d'inscription</span>
+                    <span className="font-semibold">{concours.frais_inscription.toLocaleString()} FCFA</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xl text-white/90">
+                Formulaire d'inscription au concours
+              </p>
+            )}
           </div>
         </div>
 
