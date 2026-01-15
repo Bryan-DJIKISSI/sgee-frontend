@@ -1,5 +1,11 @@
 import api from './api'
-import { ApiResponse, Ecole } from '../types'
+import type { Ecole } from '../types'
+
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  message?: string
+}
 
 export const ecoleService = {
   getAll: async (): Promise<ApiResponse<Ecole[]>> => {

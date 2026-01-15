@@ -1,5 +1,11 @@
 import api from './api'
-import { ApiResponse, Region } from '../types'
+import type { Region } from '../types'
+
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  message?: string
+}
 
 interface RegionDepartementsResponse {
   region: string

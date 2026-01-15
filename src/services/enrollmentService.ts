@@ -1,5 +1,11 @@
 import api from './api'
-import { ApiResponse, Enrollement } from '../types'
+import type { Enrollement } from '../types'
+
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  message?: string
+}
 
 export const enrollmentService = {
   getMyEnrollments: async (): Promise<ApiResponse<Enrollement[]>> => {

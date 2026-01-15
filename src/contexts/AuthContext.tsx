@@ -1,6 +1,40 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { authService } from '../services/authService'
-import { User, LoginFormData, RegisterFormData } from '../types'
+
+interface User {
+  id_user: number
+  email: string
+  nom: string
+  prenom?: string
+  role?: {
+    id_role: number
+    intitule: string
+  }
+}
+
+interface LoginFormData {
+  email: string
+  password: string
+}
+
+interface RegisterFormData {
+  nom: string
+  prenom?: string
+  email: string
+  password: string
+  date_naiss: string
+  lieu_naiss: string
+  sexe: string
+  nationalite?: string
+  adresse?: string
+  region_origine: string
+  departement_origine: string
+  cni: string
+  nom_pere?: string
+  tel_pere?: string
+  nom_mere?: string
+  tel_mere?: string
+}
 
 interface AuthContextType {
   user: User | null

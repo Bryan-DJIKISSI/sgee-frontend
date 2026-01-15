@@ -3,8 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import { useAuth } from '../../contexts/AuthContext'
-import { LogIn, Mail, Lock } from 'lucide-react'
-import { LoginFormData } from '../../types'
+import { LogIn, Mail, Lock, BookOpen } from 'lucide-react'
+
+interface LoginFormData {
+  email: string
+  password: string
+}
 
 const Login = () => {
   const { login } = useAuth()
@@ -31,67 +35,140 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
+        {/* Logo et titre */}
         <div className="text-center mb-8">
-          <LogIn className="mx-auto h-12 w-12 text-primary-600" />
-          <h2 className="mt-4 text-3xl font-bold text-gray-900">Connexion</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl shadow-xl mb-4">
+            <LogIn className="h-10 w-10 text-white" />
+          </div>
+          <h2 className="text-4xl font-bold text-gray-900 mb-2">Bon retour !</h2>
+          <p className="text-gray-600">
+            Connectez-vous pour accéder à votre espace
+          </p>
+          <p className="mt-4 text-sm text-gray-600">
             Pas encore de compte ?{' '}
-            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
-              S'inscrire
+            <Link to="/register" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
+              Créer un compte
             </Link>
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        {/* Formulaire */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Mail className="inline h-4 w-4 mr-1" />
-                Email
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Adresse email
               </label>
-              <input
-                {...register('email', {
-                  required: 'L\'email est requis',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Email invalide'
-                  }
-                })}
-                type="email"
-                className="input-field"
-                placeholder="votre@email.com"
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  {...register('email', {
+                    required: 'L\'email est requis',
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: 'Email invalide'
+                    }
+                  })}
+                  type="email"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                  placeholder="votre@email.com"
+                />
+              </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-2 text-sm text-red-600 flex items-center">
+                  <span className="mr-1">⚠</span> {errors.email.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Lock className="inline h-4 w-4 mr-1" />
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Mot de passe
               </label>
-              <input
-                {...register('password', { required: 'Le mot de passe est requis' })}
-                type="password"
-                className="input-field"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  {...register('password', { required: 'Le mot de passe est requis' })}
+                  type="password"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                  placeholder="••••••••"
+                />
+              </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-2 text-sm text-red-600 flex items-center">
+                  <span className="mr-1">⚠</span> {errors.password.message}
+                </p>
               )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                  Se souvenir de moi
+                </label>
+              </div>
+              <a href="#" className="text-sm font-medium text-primary-600 hover:text-primary-700">
+                Mot de passe oublié ?
+              </a>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-primary py-3 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {loading ? 'Connexion en cours...' : 'Se connecter'}
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Connexion en cours...
+                </span>
+              ) : (
+                'Se connecter'
+              )}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="mt-8 relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-500">Ou continuer avec</span>
+            </div>
+          </div>
+
+          {/* Social Login (placeholder) */}
+          <div className="mt-6 grid grid-cols-2 gap-4">
+            <button className="flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+              <span className="text-sm font-medium text-gray-700">Google</span>
+            </button>
+            <button className="flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+              <span className="text-sm font-medium text-gray-700">Facebook</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Back to home */}
+        <div className="mt-6 text-center">
+          <Link to="/" className="inline-flex items-center text-sm text-gray-600 hover:text-primary-600 transition-colors">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Retour à l'accueil
+          </Link>
         </div>
       </div>
     </div>

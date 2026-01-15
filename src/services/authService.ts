@@ -1,5 +1,12 @@
 import api from './api'
-import { AuthResponse, ApiResponse, User, RegisterFormData, LoginFormData } from '../types'
+import type { AuthResponse, User, RegisterFormData, LoginFormData } from '../types'
+
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  message?: string
+  errors?: Record<string, string[]>
+}
 
 export const authService = {
   register: async (userData: RegisterFormData): Promise<ApiResponse<User>> => {
