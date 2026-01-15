@@ -1,8 +1,37 @@
 import { Link } from 'react-router-dom'
-import { BookOpen, Calendar, FileText, CheckCircle, ArrowRight, GraduationCap, Shield, Clock, Users } from 'lucide-react'
+import { BookOpen, Calendar, FileText, CheckCircle, ArrowRight, GraduationCap, Shield, Clock, Users, School, MapPin } from 'lucide-react'
 import Navbar from '../components/Navbar'
+import { useState, useEffect } from 'react'
+import { concoursService, type Concours } from '../services/concoursService'
+import { useAuth } from '../contexts/AuthContext'
 
 const LandingPage = () => {
+  const { user } = useAuth()
+  const [concours, setConcours] = useState<Concours[]>([])
+  const [loadingConcours, setLoadingConcours] = useState(true)
+
+  useEffect(() => {
+    loadConcours()
+  }, [])
+
+  const loadConcours = async () => {
+    try {
+      const response = await concoursService.getAvailable()
+      setConcours(response.data || [])
+    } catch (error) {
+      console.error('Erreur chargement concours:', error)
+    } finally {
+      setLoadingConcours(false)
+    }
+  }
+
+  const getDaysRemaining = (dateString: string) => {
+    const now = new Date()
+    const date = new Date(dateString)
+    const diff = date.getTime() - now.getTime()
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
+    return days > 0 ? days : 0
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
       <Navbar />
@@ -171,6 +200,108 @@ const LandingPage = () => {
             Créer mon compte gratuitement
             <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
+        </div>
+      </section>
+
+      {/* Concours Disponibles Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Concours Ouverts
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Découvrez les concours actuellement ouverts aux inscriptions
+            </p>
+          </div>
+
+          {loadingConcours ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            </div>
+          ) : concours.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {concours.slice(0, 6).map((c) => {
+                const daysRemaining = getDaysRemaining(c.date_limite_inscription)
+                
+                return (
+                  <div
+                    key={c.id_concours}
+                    className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-1"
+                  >
+                    <div className="bg-gradient-to-r from-primary-600 to-secondary-600 p-6 text-white">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <School className="h-6 w-6" />
+                        <h3 className="font-bold text-lg line-clamp-1">{c.ecole?.nom_ecole}</h3>
+                      </div>
+                      <p className="text-sm text-white/90 line-clamp-2">{c.intitule}</p>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Calendar className="h-4 w-4 mr-2 text-primary-600" />
+                        <span>Concours: {new Date(c.date_debut).toLocaleDateString('fr-FR')}</span>
+                      </div>
+
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Clock className="h-4 w-4 mr-2 text-primary-600" />
+                        <span>Inscription avant: {new Date(c.date_limite_inscription).toLocaleDateString('fr-FR')}</span>
+                      </div>
+
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Users className="h-4 w-4 mr-2 text-primary-600" />
+                        <span>{c.places_disponibles} places</span>
+                      </div>
+
+                      <div className="pt-4 border-t border-gray-200">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm text-gray-600">Plus que</span>
+                          <span className="text-2xl font-bold text-primary-600">{daysRemaining}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 mb-4">jours pour s'inscrire</p>
+
+                        {user ? (
+                          <Link
+                            to={`/enrollment/${c.id_ecole}?concours=${c.id_concours}`}
+                            className="block w-full text-center px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                          >
+                            S'inscrire maintenant
+                          </Link>
+                        ) : (
+                          <Link
+                            to="/login"
+                            className="block w-full text-center px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                          >
+                            Se connecter pour s'inscrire
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gray-50 rounded-2xl">
+              <School className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Aucun concours ouvert</h3>
+              <p className="text-gray-600">
+                Les concours seront publiés prochainement. Revenez plus tard.
+              </p>
+            </div>
+          )}
+
+          {concours.length > 6 && (
+            <div className="text-center mt-12">
+              <Link
+                to={user ? "/concours" : "/login"}
+                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+              >
+                Voir tous les concours
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
