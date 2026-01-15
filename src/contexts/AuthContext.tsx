@@ -22,18 +22,22 @@ interface RegisterFormData {
   surname?: string
   email: string
   password: string
+  password_confirmation: string
+  matricule: string
   date_naiss: string
   lieu_naiss: string
   sexe: string
-  nationalite?: string
-  adresse?: string
+  nationalite: string
+  adresse: string
   region_origine: string
   departement_origine: string
-  cni: string
-  nom_pere?: string
-  tel_pere?: string
-  nom_mere?: string
-  tel_mere?: string
+  num_cni: string
+  nom_pere: string
+  prenom_pere?: string
+  tel_pere: string
+  nom_mere: string
+  prenom_mere?: string
+  tel_mere: string
 }
 
 interface AuthContextType {

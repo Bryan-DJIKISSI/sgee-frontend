@@ -13,22 +13,25 @@ interface Region {
 }
 
 interface RegisterFormData {
-  nom: string
-  prenom?: string
+  name: string
+  surname?: string
   email: string
   password: string
+  password_confirmation: string
   date_naiss: string
   lieu_naiss: string
   sexe: string
   nationalite: string
-  adresse?: string
+  adresse: string
   region_origine: string
   departement_origine: string
-  cni: string
-  nom_pere?: string
-  tel_pere?: string
-  nom_mere?: string
-  tel_mere?: string
+  num_cni: string
+  nom_pere: string
+  prenom_pere?: string
+  tel_pere: string
+  nom_mere: string
+  prenom_mere?: string
+  tel_mere: string
 }
 
 const Register = () => {
@@ -77,11 +80,40 @@ const Register = () => {
   const onSubmit = async (data: RegisterFormData) => {
     setLoading(true)
     try {
-      await registerUser(data)
+      // Générer un matricule unique de 10 caractères max
+      const timestamp = Date.now().toString().slice(-6) // 6 derniers chiffres
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0') // 3 chiffres
+      const matricule = 'M' + timestamp + random // M + 6 + 3 = 10 caractères
+      
+      // Préparer les données pour le backend
+      const registerData = {
+        ...data,
+        matricule,
+        password_confirmation: data.password,
+      }
+      
+      console.log('Données envoyées:', registerData)
+      
+      await registerUser(registerData)
       toast.success('Inscription réussie ! Vérifiez votre email.')
       navigate('/verify-email', { state: { email: data.email } })
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erreur lors de l\'inscription')
+      console.error('Erreur inscription complète:', error)
+      console.error('Response data:', error.response?.data)
+      
+      const errorMessage = error.response?.data?.message || 'Erreur lors de l\'inscription'
+      const errors = error.response?.data?.errors
+      
+      if (errors) {
+        console.log('Erreurs de validation:', errors)
+        Object.keys(errors).forEach(key => {
+          const errorMsg = `${key}: ${errors[key][0]}`
+          console.error(errorMsg)
+          toast.error(errorMsg, { autoClose: 5000 })
+        })
+      } else {
+        toast.error(errorMessage)
+      }
     } finally {
       setLoading(false)
     }
@@ -170,11 +202,11 @@ const Register = () => {
                     Nom *
                   </label>
                   <input
-                    {...register('nom', { required: 'Le nom est requis' })}
+                    {...register('name', { required: 'Le nom est requis' })}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                     placeholder="Votre nom"
                   />
-                  {errors.nom && <p className="mt-2 text-sm text-red-600">⚠ {errors.nom.message}</p>}
+                  {errors.name && <p className="mt-2 text-sm text-red-600">⚠ {errors.name.message}</p>}
                 </div>
 
                 <div>
@@ -182,7 +214,7 @@ const Register = () => {
                     Prénom
                   </label>
                   <input
-                    {...register('prenom')}
+                    {...register('surname')}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                     placeholder="Votre prénom"
                   />
@@ -221,8 +253,8 @@ const Register = () => {
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                   >
                     <option value="">Sélectionner</option>
-                    <option value="Masculin">Masculin</option>
-                    <option value="Féminin">Féminin</option>
+                    <option value="M">Masculin</option>
+                    <option value="F">Féminin</option>
                   </select>
                   {errors.sexe && <p className="mt-2 text-sm text-red-600">⚠ {errors.sexe.message}</p>}
                 </div>
@@ -245,22 +277,23 @@ const Register = () => {
                     CNI *
                   </label>
                   <input
-                    {...register('cni', { required: 'Le numéro CNI est requis' })}
+                    {...register('num_cni', { required: 'Le numéro CNI est requis' })}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                     placeholder="Numéro CNI"
                   />
-                  {errors.cni && <p className="mt-2 text-sm text-red-600">⚠ {errors.cni.message}</p>}
+                  {errors.num_cni && <p className="mt-2 text-sm text-red-600">⚠ {errors.num_cni.message}</p>}
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Adresse
+                    Adresse *
                   </label>
                   <input
-                    {...register('adresse')}
+                    {...register('adresse', { required: 'L\'adresse est requise' })}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                     placeholder="Votre adresse"
                   />
+                  {errors.adresse && <p className="mt-2 text-sm text-red-600">⚠ {errors.adresse.message}</p>}
                 </div>
               </div>
             </div>
@@ -324,48 +357,74 @@ const Register = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Nom du père
+                    Nom du père *
                   </label>
                   <input
-                    {...register('nom_pere')}
+                    {...register('nom_pere', { required: 'Le nom du père est requis' })}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-                    placeholder="Nom complet du père"
+                    placeholder="Nom du père"
+                  />
+                  {errors.nom_pere && <p className="mt-2 text-sm text-red-600">⚠ {errors.nom_pere.message}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Prénom du père
+                  </label>
+                  <input
+                    {...register('prenom_pere')}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                    placeholder="Prénom du père"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Téléphone du père
+                    Téléphone du père *
                   </label>
                   <input
-                    {...register('tel_pere')}
+                    {...register('tel_pere', { required: 'Le téléphone du père est requis' })}
                     type="tel"
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                     placeholder="+237 XXX XXX XXX"
                   />
+                  {errors.tel_pere && <p className="mt-2 text-sm text-red-600">⚠ {errors.tel_pere.message}</p>}
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Nom de la mère
+                    Nom de la mère *
                   </label>
                   <input
-                    {...register('nom_mere')}
+                    {...register('nom_mere', { required: 'Le nom de la mère est requis' })}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-                    placeholder="Nom complet de la mère"
+                    placeholder="Nom de la mère"
+                  />
+                  {errors.nom_mere && <p className="mt-2 text-sm text-red-600">⚠ {errors.nom_mere.message}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Prénom de la mère
+                  </label>
+                  <input
+                    {...register('prenom_mere')}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                    placeholder="Prénom de la mère"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Téléphone de la mère
+                    Téléphone de la mère *
                   </label>
                   <input
-                    {...register('tel_mere')}
+                    {...register('tel_mere', { required: 'Le téléphone de la mère est requis' })}
                     type="tel"
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                     placeholder="+237 XXX XXX XXX"
                   />
+                  {errors.tel_mere && <p className="mt-2 text-sm text-red-600">⚠ {errors.tel_mere.message}</p>}
                 </div>
               </div>
             </div>
