@@ -5,8 +5,7 @@ import { toast } from 'react-toastify'
 import { enrollmentService } from '../services/enrollmentService'
 import { ecoleService } from '../services/ecoleService'
 import { regionService } from '../services/regionService'
-import Layout from '../components/Layout'
-import LoadingSpinner from '../components/LoadingSpinner'
+import DashboardLayout from '../components/DashboardLayout'
 import { 
   Upload, MapPin, CheckCircle, 
   ArrowRight, ArrowLeft, School, Building2
@@ -148,17 +147,17 @@ const EnrollmentForm = () => {
 
   if (loadingEcole) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="flex justify-center items-center min-h-[400px]">
-          <LoadingSpinner size="lg" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
         </div>
-      </Layout>
+      </DashboardLayout>
     )
   }
 
   if (!ecoleId || !ecole) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="max-w-3xl mx-auto">
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
             <School className="mx-auto h-16 w-16 text-gray-400 mb-4" />
@@ -167,19 +166,19 @@ const EnrollmentForm = () => {
               Veuillez d'abord sélectionner une école pour commencer votre inscription.
             </p>
             <button
-              onClick={() => navigate('/ecoles')}
+              onClick={() => navigate('/concours')}
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
-              Voir les écoles
+              Voir les concours
             </button>
           </div>
         </div>
-      </Layout>
+      </DashboardLayout>
     )
   }
 
   return (
-    <Layout>
+    <DashboardLayout>
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 via-secondary-600 to-teal-600 rounded-2xl shadow-2xl p-8">
@@ -515,8 +514,8 @@ const EnrollmentForm = () => {
                 >
                   {loading ? (
                     <div className="flex items-center">
-                      <LoadingSpinner size="sm" />
-                      <span className="ml-2">Envoi en cours...</span>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      <span>Envoi en cours...</span>
                     </div>
                   ) : (
                     <>
@@ -530,7 +529,7 @@ const EnrollmentForm = () => {
           </div>
         </form>
       </div>
-    </Layout>
+    </DashboardLayout>
   )
 }
 
