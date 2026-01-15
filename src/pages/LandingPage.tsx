@@ -209,6 +209,15 @@ const LandingPage = () => {
           </div>
           <div className="border-t border-gray-800 pt-8 text-center">
             <p className="text-gray-400">© 2026 SGEE. Tous droits réservés.</p>
+            <div className="mt-4">
+              <Link 
+                to="/login" 
+                className="inline-flex items-center text-sm text-gray-400 hover:text-primary-400 transition-colors"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Accès Administrateur
+              </Link>
+            </div>
           </div>
         </div>
       </footer>

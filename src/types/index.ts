@@ -2,8 +2,8 @@
 export interface User {
   id_user: number
   email: string
-  nom: string
-  prenom?: string
+  name: string
+  surname?: string
   id_candidat?: number
   id_role: number
   role?: Role
@@ -184,8 +184,8 @@ export interface AuthResponse {
 
 // Types pour les formulaires
 export interface RegisterFormData {
-  nom: string
-  prenom?: string
+  name: string
+  surname?: string
   email: string
   password: string
   date_naiss: string

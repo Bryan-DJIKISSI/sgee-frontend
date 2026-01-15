@@ -15,12 +15,21 @@ export const authService = {
   },
 
   login: async (credentials: LoginFormData): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/login', credentials)
-    if (response.data.success && response.data.token) {
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('user', JSON.stringify(response.data.user))
+    const response = await api.post<any>('/auth/login', credentials)
+    // Le backend Laravel retourne directement { user, token, message }
+    const { user, token } = response.data
+    
+    if (token) {
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(user))
     }
-    return response.data
+    
+    return {
+      success: true,
+      user,
+      token,
+      message: response.data.message
+    }
   },
 
   logout: async (): Promise<void> => {

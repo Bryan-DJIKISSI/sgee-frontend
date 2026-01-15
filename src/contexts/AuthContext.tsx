@@ -4,8 +4,8 @@ import { authService } from '../services/authService'
 interface User {
   id_user: number
   email: string
-  nom: string
-  prenom?: string
+  name: string
+  surname?: string
   role?: {
     id_role: number
     intitule: string
@@ -18,8 +18,8 @@ interface LoginFormData {
 }
 
 interface RegisterFormData {
-  nom: string
-  prenom?: string
+  name: string
+  surname?: string
   email: string
   password: string
   date_naiss: string
@@ -75,7 +75,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (credentials: LoginFormData) => {
     const data = await authService.login(credentials)
-    setUser(data.user || null)
+    if (data.user) {
+      setUser(data.user)
+    }
     return data
   }
 
