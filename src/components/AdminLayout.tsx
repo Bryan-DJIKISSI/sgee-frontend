@@ -25,8 +25,13 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const handleLogout = async () => {
-    await logout()
-    navigate('/login')
+    try {
+      await logout()
+      navigate('/login', { replace: true })
+    } catch (error) {
+      console.error('Logout error:', error)
+      navigate('/login', { replace: true })
+    }
   }
 
   const menuItems = [

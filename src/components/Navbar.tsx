@@ -7,8 +7,15 @@ const Navbar = () => {
   const navigate = useNavigate()
 
   const handleLogout = async () => {
-    await logout()
-    navigate('/login')
+    try {
+      await logout()
+      // Rediriger vers la page de connexion avec replace pour éviter de revenir en arrière
+      navigate('/login', { replace: true })
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Même en cas d'erreur, nettoyer et rediriger
+      navigate('/login', { replace: true })
+    }
   }
 
   return (

@@ -68,19 +68,50 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const savedUser = localStorage.getItem('user')
-    
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser))
+    const initAuth = async () => {
+      const token = localStorage.getItem('token')
+      const savedUser = localStorage.getItem('user')
+      
+      if (token && savedUser) {
+        try {
+          const parsedUser = JSON.parse(savedUser)
+          console.log('Loaded user from localStorage:', parsedUser)
+          console.log('User role from localStorage:', parsedUser.role)
+          
+          // Vérifier que l'utilisateur a bien un rôle
+          if (!parsedUser.role || !parsedUser.role.intitule) {
+            console.warn('User has no role, clearing localStorage')
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+            setUser(null)
+          } else {
+            setUser(parsedUser)
+          }
+        } catch (error) {
+          console.error('Error parsing user from localStorage:', error)
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          setUser(null)
+        }
+      }
+      setLoading(false)
     }
-    setLoading(false)
+    
+    initAuth()
   }, [])
 
   const login = async (credentials: LoginFormData) => {
+    // IMPORTANT: Nettoyer complètement le localStorage avant de se connecter
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setUser(null)
+    
     const data = await authService.login(credentials)
     if (data.user) {
       setUser(data.user)
+      // Vérifier que les données sont bien sauvegardées
+      console.log('User set in context:', data.user)
+      console.log('User role:', data.user.role)
     }
     return data
   }
@@ -90,8 +121,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }
 
   const logout = async () => {
-    await authService.logout()
-    setUser(null)
+    try {
+      await authService.logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      // IMPORTANT: Toujours nettoyer le state et le localStorage
+      setUser(null)
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+    }
   }
 
   const isAdmin = (): boolean => {

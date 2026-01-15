@@ -27,19 +27,17 @@ const Login = () => {
       
       toast.success('Connexion réussie !')
       
-      // Attendre un peu pour que le state soit mis à jour
-      setTimeout(() => {
-        const isAdmin = response.user?.role?.intitule === 'ADMIN'
-        console.log('Is admin?', isAdmin)
-        
-        if (isAdmin) {
-          console.log('Redirecting to /admin')
-          navigate('/admin')
-        } else {
-          console.log('Redirecting to /dashboard')
-          navigate('/dashboard')
-        }
-      }, 100)
+      // Vérifier le rôle IMMÉDIATEMENT depuis la réponse
+      const userRole = response.user?.role?.intitule
+      console.log('User role from response:', userRole)
+      
+      if (userRole === 'ADMIN') {
+        console.log('Redirecting to /admin')
+        navigate('/admin', { replace: true })
+      } else {
+        console.log('Redirecting to /dashboard')
+        navigate('/dashboard', { replace: true })
+      }
     } catch (error: any) {
       console.error('Login error:', error)
       toast.error(error.response?.data?.message || 'Erreur de connexion')
