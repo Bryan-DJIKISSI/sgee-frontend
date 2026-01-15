@@ -1,289 +1,466 @@
-import { useState } from 'react'
-import Layout from '../../components/Layout'
-import { 
-  Calendar, Plus, Edit, Trash2, Upload, 
-  CheckCircle, XCircle, FileText, School 
-} from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Edit, Trash2, Search, BookOpen, Calendar } from 'lucide-react'
+import { toast } from 'react-toastify'
+import AdminLayout from '../../components/AdminLayout'
+
+interface Ecole {
+  id_ecole: number
+  nom_ecole: string
+  sigle?: string
+}
 
 interface Concours {
   id_concours: number
   intitule: string
+  description?: string
   date_debut: string
   date_fin: string
-  id_ecole?: number
-  pdf_path?: string
-  ecole?: {
-    nom_ecole: string
-    sigle?: string
-  }
+  date_limite_inscription: string
+  date_limite_paiement: string
+  date_limite_depot: string
+  id_ecole: number
+  ecole?: Ecole
+  niveau_requis: string
+  frais_inscription: number
+  places_disponibles: number
+  statut: string
 }
 
 const AdminConcours = () => {
-  const [concours] = useState<Concours[]>([
-    {
-      id_concours: 1,
-      intitule: 'Concours d\'entrée en 1ère année',
-      date_debut: '2026-03-01',
-      date_fin: '2026-03-15',
-      id_ecole: 1,
-      ecole: {
-        nom_ecole: 'École Nationale Supérieure Polytechnique',
-        sigle: 'ENSP'
-      }
-    },
-    {
-      id_concours: 2,
-      intitule: 'Concours Master 2',
-      date_debut: '2026-04-01',
-      date_fin: '2026-04-10',
-      id_ecole: 2,
-      ecole: {
-        nom_ecole: 'École Normale Supérieure',
-        sigle: 'ENS'
-      }
+  const [concours, setConcours] = useState<Concours[]>([])
+  const [ecoles, setEcoles] = useState<Ecole[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [editingConcours, setEditingConcours] = useState<Concours | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [formData, setFormData] = useState({
+    intitule: '',
+    description: '',
+    date_debut: '',
+    date_fin: '',
+    date_limite_inscription: '',
+    date_limite_paiement: '',
+    date_limite_depot: '',
+    id_ecole: '',
+    niveau_requis: '',
+    frais_inscription: '',
+    places_disponibles: '',
+    statut: 'ouvert',
+  })
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    try {
+      // TODO: Charger depuis l'API
+      setEcoles([])
+      setConcours([])
+    } catch (error) {
+      console.error('Erreur chargement:', error)
+    } finally {
+      setLoading(false)
     }
-  ])
-
-  const isActive = (dateDebut: string, dateFin: string) => {
-    const now = new Date()
-    const debut = new Date(dateDebut)
-    const fin = new Date(dateFin)
-    return now >= debut && now <= fin
   }
 
-  const isUpcoming = (dateDebut: string) => {
-    const now = new Date()
-    const debut = new Date(dateDebut)
-    return now < debut
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      // TODO: Appeler l'API
+      toast.success(editingConcours ? 'Concours modifié' : 'Concours créé')
+      setShowModal(false)
+      resetForm()
+      loadData()
+    } catch (error: any) {
+      toast.error('Erreur lors de l\'opération')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const isPast = (dateFin: string) => {
-    const now = new Date()
-    const fin = new Date(dateFin)
-    return now > fin
+  const handleEdit = (c: Concours) => {
+    setEditingConcours(c)
+    setFormData({
+      intitule: c.intitule,
+      description: c.description || '',
+      date_debut: c.date_debut,
+      date_fin: c.date_fin,
+      date_limite_inscription: c.date_limite_inscription,
+      date_limite_paiement: c.date_limite_paiement,
+      date_limite_depot: c.date_limite_depot,
+      id_ecole: c.id_ecole.toString(),
+      niveau_requis: c.niveau_requis,
+      frais_inscription: c.frais_inscription.toString(),
+      places_disponibles: c.places_disponibles.toString(),
+      statut: c.statut,
+    })
+    setShowModal(true)
   }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce concours ?')) return
+
+    try {
+      // TODO: Appeler l'API
+      toast.success('Concours supprimé')
+      loadData()
+    } catch (error) {
+      toast.error('Erreur lors de la suppression')
+    }
+  }
+
+  const resetForm = () => {
+    setFormData({
+      intitule: '',
+      description: '',
+      date_debut: '',
+      date_fin: '',
+      date_limite_inscription: '',
+      date_limite_paiement: '',
+      date_limite_depot: '',
+      id_ecole: '',
+      niveau_requis: '',
+      frais_inscription: '',
+      places_disponibles: '',
+      statut: 'ouvert',
+    })
+    setEditingConcours(null)
+  }
+
+  const filteredConcours = concours.filter(c =>
+    c.intitule.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
-    <Layout>
-      <div className="space-y-8">
+    <AdminLayout>
+      <div className="space-y-6">
         {/* Header */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-green-600 via-primary-600 to-secondary-600 rounded-2xl shadow-2xl p-8">
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white opacity-5 rounded-full"></div>
-          <div className="relative flex items-center justify-between">
-            <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <Calendar className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <h1 className="text-4xl font-bold text-white mb-2">Gestion des concours</h1>
-              <p className="text-xl text-white/90">
-                Planifiez et publiez les concours d'entrée
-              </p>
-            </div>
-            <button className="inline-flex items-center px-6 py-3 bg-white hover:bg-gray-100 text-primary-600 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all">
-              <Plus className="h-5 w-5 mr-2" />
-              Nouveau concours
-            </button>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Gestion des Concours</h1>
+            <p className="text-gray-600 mt-1">Créez et gérez les concours nationaux</p>
           </div>
+          <button
+            onClick={() => {
+              resetForm()
+              setShowModal(true)
+            }}
+            className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Ajouter un concours
+          </button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900">{concours.length}</h3>
-                <p className="text-sm text-gray-600">Total concours</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900">
-                  {concours.filter(c => isActive(c.date_debut, c.date_fin)).length}
-                </h3>
-                <p className="text-sm text-gray-600">En cours</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900">
-                  {concours.filter(c => isUpcoming(c.date_debut)).length}
-                </h3>
-                <p className="text-sm text-gray-600">À venir</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl flex items-center justify-center">
-                <XCircle className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900">
-                  {concours.filter(c => isPast(c.date_fin)).length}
-                </h3>
-                <p className="text-sm text-gray-600">Terminés</p>
-              </div>
-            </div>
+        {/* Search */}
+        <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Rechercher un concours..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
           </div>
         </div>
 
         {/* Concours List */}
         <div className="grid gap-6">
-          {concours.map((c) => {
-            const active = isActive(c.date_debut, c.date_fin)
-            const upcoming = isUpcoming(c.date_debut)
-            const past = isPast(c.date_fin)
+          {filteredConcours.map((c) => (
+            <div
+              key={c.id_concours}
+              className="bg-white rounded-xl shadow-md p-6 border border-gray-100"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <BookOpen className="h-6 w-6 text-primary-600" />
+                    <h3 className="text-xl font-bold text-gray-900">{c.intitule}</h3>
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      c.statut === 'ouvert' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {c.statut}
+                    </span>
+                  </div>
+                  <p className="text-gray-600">{c.ecole?.nom_ecole}</p>
+                  {c.description && (
+                    <p className="text-sm text-gray-600 mt-2">{c.description}</p>
+                  )}
+                </div>
+              </div>
 
-            return (
-              <div 
-                key={c.id_concours} 
-                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all p-8 border border-gray-100"
-              >
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                  {/* Left Section */}
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        <Calendar className="h-7 w-7 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-bold text-gray-900">{c.intitule}</h3>
-                        {c.ecole && (
-                          <p className="text-gray-600">
-                            {c.ecole.nom_ecole} {c.ecole.sigle && `(${c.ecole.sigle})`}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
-                        <Calendar className="h-5 w-5 text-primary-600" />
-                        <div>
-                          <p className="text-xs text-gray-600 font-medium">Date de début</p>
-                          <p className="text-sm font-semibold text-gray-900">
-                            {new Date(c.date_debut).toLocaleDateString('fr-FR', { 
-                              day: 'numeric', 
-                              month: 'long', 
-                              year: 'numeric' 
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
-                        <Calendar className="h-5 w-5 text-amber-600" />
-                        <div>
-                          <p className="text-xs text-gray-600 font-medium">Date de fin</p>
-                          <p className="text-sm font-semibold text-gray-900">
-                            {new Date(c.date_fin).toLocaleDateString('fr-FR', { 
-                              day: 'numeric', 
-                              month: 'long', 
-                              year: 'numeric' 
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+              <div className="grid md:grid-cols-4 gap-4 mb-4">
+                <div className="text-sm">
+                  <p className="text-gray-600">Date du concours</p>
+                  <p className="font-semibold">{new Date(c.date_debut).toLocaleDateString('fr-FR')}</p>
+                </div>
+                <div className="text-sm">
+                  <p className="text-gray-600">Inscription avant</p>
+                  <p className="font-semibold">{new Date(c.date_limite_inscription).toLocaleDateString('fr-FR')}</p>
+                </div>
+                <div className="text-sm">
+                  <p className="text-gray-600">Places</p>
+                  <p className="font-semibold">{c.places_disponibles}</p>
+                </div>
+                <div className="text-sm">
+                  <p className="text-gray-600">Frais</p>
+                  <p className="font-semibold">{c.frais_inscription.toLocaleString()} FCFA</p>
+                </div>
+              </div>
 
-                    {c.pdf_path && (
-                      <div className="mt-4 flex items-center space-x-2 text-sm">
-                        <FileText className="h-5 w-5 text-primary-600" />
-                        <span className="text-primary-700 font-semibold">Document PDF disponible</span>
-                      </div>
-                    )}
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleEdit(c)}
+                  className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Modifier
+                </button>
+                <button
+                  onClick={() => handleDelete(c.id_concours)}
+                  className="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filteredConcours.length === 0 && !loading && (
+          <div className="text-center py-12 bg-white rounded-xl shadow-md">
+            <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Aucun concours</h3>
+            <p className="text-gray-600">Commencez par ajouter un concours</p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {editingConcours ? 'Modifier le concours' : 'Ajouter un concours'}
+              </h2>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {/* Informations générales */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Informations générales</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Intitulé du concours *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.intitule}
+                      onChange={(e) => setFormData({ ...formData, intitule: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                      placeholder="Ex: Concours ENSP Cycle Ingénieur 2026"
+                    />
                   </div>
 
-                  {/* Right Section */}
-                  <div className="flex flex-col items-end space-y-4">
-                    {/* Status Badge */}
-                    {active && (
-                      <span className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold border-2 bg-emerald-100 text-emerald-800 border-emerald-200">
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        En cours
-                      </span>
-                    )}
-                    {upcoming && (
-                      <span className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold border-2 bg-amber-100 text-amber-800 border-amber-200">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        À venir
-                      </span>
-                    )}
-                    {past && (
-                      <span className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold border-2 bg-gray-100 text-gray-800 border-gray-200">
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Terminé
-                      </span>
-                    )}
-                    
-                    <div className="flex items-center space-x-2">
-                      <button className="inline-flex items-center px-6 py-3 bg-primary-100 hover:bg-primary-200 text-primary-700 font-semibold rounded-xl transition-all">
-                        <Edit className="h-5 w-5 mr-2" />
-                        Modifier
-                      </button>
-                      <button className="inline-flex items-center px-4 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-xl transition-all">
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
 
-                    {!c.pdf_path && (
-                      <button className="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all">
-                        <Upload className="h-5 w-5 mr-2" />
-                        Ajouter PDF
-                      </button>
-                    )}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      École *
+                    </label>
+                    <select
+                      required
+                      value={formData.id_ecole}
+                      onChange={(e) => setFormData({ ...formData, id_ecole: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    >
+                      <option value="">Sélectionner une école</option>
+                      {ecoles.map((ecole) => (
+                        <option key={ecole.id_ecole} value={ecole.id_ecole}>
+                          {ecole.nom_ecole}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Statut *
+                    </label>
+                    <select
+                      required
+                      value={formData.statut}
+                      onChange={(e) => setFormData({ ...formData, statut: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    >
+                      <option value="ouvert">Ouvert</option>
+                      <option value="fermé">Fermé</option>
+                      <option value="bientôt">Bientôt</option>
+                    </select>
                   </div>
                 </div>
               </div>
-            )
-          })}
-        </div>
 
-        {/* Info Box */}
-        <div className="bg-gradient-to-br from-primary-50 to-secondary-50 border-2 border-primary-200 rounded-2xl p-6">
-          <div className="flex items-start space-x-4">
-            <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <School className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h4 className="font-bold text-gray-900 mb-2">Gestion des concours</h4>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start">
-                  <CheckCircle className="h-4 w-4 text-primary-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <span>Définissez les dates d'ouverture et de clôture des inscriptions</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-4 w-4 text-primary-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <span>Associez chaque concours à une école spécifique</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-4 w-4 text-primary-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <span>Téléchargez le calendrier des concours en PDF pour les candidats</span>
-                </li>
-              </ul>
-            </div>
+              {/* Dates */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Dates importantes</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Date début concours *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.date_debut}
+                      onChange={(e) => setFormData({ ...formData, date_debut: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Date fin concours *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.date_fin}
+                      onChange={(e) => setFormData({ ...formData, date_fin: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Date limite inscription *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.date_limite_inscription}
+                      onChange={(e) => setFormData({ ...formData, date_limite_inscription: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Date limite paiement *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.date_limite_paiement}
+                      onChange={(e) => setFormData({ ...formData, date_limite_paiement: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Date limite dépôt dossier *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.date_limite_depot}
+                      onChange={(e) => setFormData({ ...formData, date_limite_depot: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Détails */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Détails du concours</h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Niveau requis *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.niveau_requis}
+                      onChange={(e) => setFormData({ ...formData, niveau_requis: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                      placeholder="Ex: Baccalauréat série C, D"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Frais d'inscription (FCFA) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={formData.frais_inscription}
+                      onChange={(e) => setFormData({ ...formData, frais_inscription: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Places disponibles *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={formData.places_disponibles}
+                      onChange={(e) => setFormData({ ...formData, places_disponibles: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false)
+                    resetForm()
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Enregistrement...' : editingConcours ? 'Modifier' : 'Créer'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
-    </Layout>
+      )}
+    </AdminLayout>
   )
 }
 
