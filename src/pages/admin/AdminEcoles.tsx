@@ -179,9 +179,13 @@ const AdminEcoles = () => {
                 <div className="flex items-center space-x-3">
                   {ecole.logo_path ? (
                     <img
-                      src={`http://localhost:8000/storage/${ecole.logo_path}`}
+                      src={`${import.meta.env.VITE_BASE_URL}/storage/${ecole.logo_path}`}
                       alt={ecole.nom_ecole}
                       className="w-12 h-12 rounded-lg object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        e.currentTarget.parentElement!.innerHTML = '<div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center"><svg class="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></div>'
+                      }}
                     />
                   ) : (
                     <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">

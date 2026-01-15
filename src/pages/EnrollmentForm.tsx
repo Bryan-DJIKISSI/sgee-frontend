@@ -316,9 +316,12 @@ const EnrollmentForm = () => {
               {ecole.logo_path ? (
                 <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center overflow-hidden">
                   <img 
-                    src={`http://localhost:8000/storage/${ecole.logo_path}`}
+                    src={`${import.meta.env.VITE_BASE_URL}/storage/${ecole.logo_path}`}
                     alt={ecole.nom_ecole}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
                   />
                 </div>
               ) : (
