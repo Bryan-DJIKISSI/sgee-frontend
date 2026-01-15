@@ -94,7 +94,14 @@ const Register = () => {
       
       console.log('Données envoyées:', registerData)
       
-      await registerUser(registerData)
+      const response = await registerUser(registerData)
+      
+      // Afficher le code de vérification en développement
+      if (response.verification_code) {
+        console.log('🔑 CODE DE VÉRIFICATION:', response.verification_code)
+        toast.info(`Code de vérification: ${response.verification_code}`, { autoClose: 10000 })
+      }
+      
       toast.success('Inscription réussie ! Vérifiez votre email.')
       navigate('/verify-email', { state: { email: data.email } })
     } catch (error: any) {

@@ -29,7 +29,7 @@ const Dashboard = () => {
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
-              Bienvenue, {user?.nom} {user?.prenom} ! 👋
+              Bienvenue, {user?.name} {user?.surname} ! 👋
             </h1>
             <p className="text-xl text-white/90 max-w-2xl">
               Gérez vos inscriptions aux concours nationaux et suivez votre progression en temps réel
@@ -58,7 +58,7 @@ const Dashboard = () => {
         {/* Quick Actions */}
         <div className="grid md:grid-cols-3 gap-6">
           <Link
-            to="/ecoles"
+            to="/concours"
             className="group bg-gradient-to-br from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 rounded-2xl shadow-lg hover:shadow-2xl transition-all p-8 transform hover:-translate-y-1"
           >
             <div className="flex items-center justify-between mb-4">
@@ -69,8 +69,8 @@ const Dashboard = () => {
                 →
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">Écoles disponibles</h3>
-            <p className="text-white/80">Consulter les écoles et concours</p>
+            <h3 className="text-2xl font-bold text-white mb-2">Concours disponibles</h3>
+            <p className="text-white/80">Consulter les concours ouverts</p>
           </Link>
 
           <Link

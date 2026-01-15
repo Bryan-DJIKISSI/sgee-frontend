@@ -23,9 +23,21 @@ const VerifyEmail = () => {
   const onSubmit = async (data: VerifyFormData) => {
     setLoading(true)
     try {
-      await authService.verifyEmail(data.email, data.code)
-      toast.success('Email vérifié avec succès !')
-      navigate('/login')
+      const response = await authService.verifyEmail(data.email, data.code)
+      
+      // Si le backend retourne un token, on connecte automatiquement l'utilisateur
+      if (response.token && response.user) {
+        localStorage.setItem('token', response.token)
+        localStorage.setItem('user', JSON.stringify(response.user))
+        
+        toast.success('Email vérifié avec succès ! Bienvenue 🎉')
+        
+        // Rediriger vers les concours disponibles pour commencer
+        navigate('/concours')
+      } else {
+        toast.success('Email vérifié avec succès !')
+        navigate('/login')
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Code invalide')
     } finally {

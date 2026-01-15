@@ -41,9 +41,22 @@ export const authService = {
     }
   },
 
-  verifyEmail: async (email: string, code: string): Promise<ApiResponse<null>> => {
-    const response = await api.post<ApiResponse<null>>('/auth/verify-email', { email, code })
-    return response.data
+  verifyEmail: async (email: string, code: string): Promise<ApiResponse<any>> => {
+    const response = await api.post<any>('/auth/verify-email', { email, code })
+    
+    // Si le backend retourne un token, on le stocke
+    if (response.data.token && response.data.user) {
+      localStorage.setItem('token', response.data.token)
+      localStorage.setItem('user', JSON.stringify(response.data.user))
+    }
+    
+    return {
+      success: true,
+      data: response.data,
+      token: response.data.token,
+      user: response.data.user,
+      message: response.data.message
+    }
   },
 
   resendCode: async (email: string): Promise<ApiResponse<null>> => {
