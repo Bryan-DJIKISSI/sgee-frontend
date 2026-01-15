@@ -4,26 +4,26 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import { useAuth } from '../../contexts/AuthContext'
 import { LogIn, Mail, Lock } from 'lucide-react'
+import { LoginFormData } from '../../types'
 
 const Login = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const { register, handleSubmit, formState: { errors } } = useForm()
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>()
   const [loading, setLoading] = useState(false)
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: LoginFormData) => {
     setLoading(true)
     try {
       const response = await login(data)
       toast.success('Connexion réussie !')
       
-      // Redirection selon le rôle
-      if (response.user.role?.intitule === 'ADMIN') {
+      if (response.user?.role?.intitule === 'ADMIN') {
         navigate('/admin')
       } else {
         navigate('/dashboard')
       }
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erreur de connexion')
     } finally {
       setLoading(false)

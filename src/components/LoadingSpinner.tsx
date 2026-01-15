@@ -1,4 +1,8 @@
-const LoadingSpinner = ({ size = 'md' }) => {
+interface LoadingSpinnerProps {
+  size?: 'sm' | 'md' | 'lg'
+}
+
+const LoadingSpinner = ({ size = 'md' }: LoadingSpinnerProps) => {
   const sizeClasses = {
     sm: 'h-6 w-6',
     md: 'h-12 w-12',

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BookOpen, FileText, Calendar, Users, School } from 'lucide-react'
+import { School, Calendar, FileText, Users } from 'lucide-react'
 import Layout from '../../components/Layout'
 
 const AdminDashboard = () => {
@@ -61,21 +61,6 @@ const AdminDashboard = () => {
               <h3 className="text-lg font-semibold text-gray-900">Utilisateurs</h3>
               <p className="text-sm text-gray-600">Gérer les comptes</p>
             </div>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="card">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Total Écoles</h3>
-            <p className="text-3xl font-bold text-gray-900">0</p>
-          </div>
-          <div className="card">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Inscriptions en attente</h3>
-            <p className="text-3xl font-bold text-yellow-600">0</p>
-          </div>
-          <div className="card">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Inscriptions validées</h3>
-            <p className="text-3xl font-bold text-green-600">0</p>
           </div>
         </div>
       </div>

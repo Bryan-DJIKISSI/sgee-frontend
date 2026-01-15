@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BookOpen, FileText, Calendar, User } from 'lucide-react'
+import { BookOpen, FileText, Calendar } from 'lucide-react'
 import Layout from '../components/Layout'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -59,16 +59,6 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600">Dates importantes</p>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Informations importantes</h2>
-          <div className="space-y-3 text-gray-600">
-            <p>✓ Assurez-vous d'avoir tous vos documents avant de commencer l'inscription</p>
-            <p>✓ Le justificatif de paiement doit être clair et lisible</p>
-            <p>✓ Vérifiez les dates limites d'inscription pour chaque concours</p>
-            <p>✓ Conservez votre reçu d'inscription pour le jour de l'examen</p>
           </div>
         </div>
       </div>

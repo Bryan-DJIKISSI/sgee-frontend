@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BookOpen, Calendar, FileText, MapPin, CheckCircle, ArrowRight } from 'lucide-react'
+import { BookOpen, Calendar, FileText, CheckCircle, ArrowRight } from 'lucide-react'
 import Navbar from '../components/Navbar'
 
 const LandingPage = () => {
@@ -102,46 +102,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Concours Section */}
-      <section className="py-20 bg-gradient-to-br from-primary-50 to-purple-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Concours Nationaux 2026
-            </h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Consultez le calendrier des concours pour l'année en cours
-            </p>
-            <a
-              href="#"
-              className="inline-flex items-center px-6 py-3 text-base font-medium text-primary-600 bg-white hover:bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition-all border border-primary-200"
-            >
-              <FileText className="mr-2 h-5 w-5" />
-              Télécharger le calendrier (PDF)
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-primary-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Prêt à commencer votre inscription ?
-          </h2>
-          <p className="text-xl text-primary-100 mb-8">
-            Rejoignez des milliers de candidats qui nous font confiance
-          </p>
-          <Link
-            to="/register"
-            className="inline-flex items-center px-8 py-4 text-lg font-medium text-primary-600 bg-white hover:bg-gray-50 rounded-lg shadow-lg hover:shadow-xl transition-all"
-          >
-            Créer mon compte gratuitement
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -160,14 +120,12 @@ const LandingPage = () => {
               <ul className="space-y-2 text-gray-400">
                 <li><Link to="/register" className="hover:text-white">Inscription</Link></li>
                 <li><Link to="/login" className="hover:text-white">Connexion</Link></li>
-                <li><a href="#" className="hover:text-white">Aide</a></li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Contact</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>Email: contact@sgee.cm</li>
-                <li>Tél: +237 XXX XXX XXX</li>
                 <li>Yaoundé, Cameroun</li>
               </ul>
             </div>

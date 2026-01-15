@@ -1,9 +1,19 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { authService } from '../services/authService'
+import { User, LoginFormData, RegisterFormData } from '../types'
 
-const AuthContext = createContext(null)
+interface AuthContextType {
+  user: User | null
+  login: (credentials: LoginFormData) => Promise<any>
+  register: (userData: RegisterFormData) => Promise<any>
+  logout: () => Promise<void>
+  isAdmin: () => boolean
+  loading: boolean
+}
 
-export const useAuth = () => {
+const AuthContext = createContext<AuthContextType | null>(null)
+
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext)
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider')
@@ -11,8 +21,12 @@ export const useAuth = () => {
   return context
 }
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -25,13 +39,13 @@ export const AuthProvider = ({ children }) => {
     setLoading(false)
   }, [])
 
-  const login = async (credentials) => {
+  const login = async (credentials: LoginFormData) => {
     const data = await authService.login(credentials)
-    setUser(data.user)
+    setUser(data.user || null)
     return data
   }
 
-  const register = async (userData) => {
+  const register = async (userData: RegisterFormData) => {
     return await authService.register(userData)
   }
 
@@ -40,11 +54,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null)
   }
 
-  const isAdmin = () => {
+  const isAdmin = (): boolean => {
     return user?.role?.intitule === 'ADMIN'
   }
 
-  const value = {
+  const value: AuthContextType = {
     user,
     login,
     register,
