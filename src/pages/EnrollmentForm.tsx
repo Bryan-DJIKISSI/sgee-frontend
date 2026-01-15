@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 import { enrollmentService } from '../services/enrollmentService'
 import { ecoleService } from '../services/ecoleService'
 import { regionService } from '../services/regionService'
+import { centreService } from '../services/centreService'
 import DashboardLayout from '../components/DashboardLayout'
 import { 
   Upload, MapPin, CheckCircle, 
@@ -49,10 +50,8 @@ interface EnrollmentFormData {
   id_ecole: number
   region_origine: string
   departement_origine: string
-  centre_depot_nom: string
-  centre_depot_lieu: string
-  centre_exam_nom: string
-  centre_exam_lieu: string
+  id_centre_depot: string
+  id_centre_exam: string
   date_concour: string
   justificatif_paiement: FileList
   annee_academique: string
@@ -69,6 +68,9 @@ const EnrollmentForm = () => {
   const [regions, setRegions] = useState<Region[]>([])
   const [departements, setDepartements] = useState<string[]>([])
   const [loadingDepartements, setLoadingDepartements] = useState(false)
+  const [centresDepot, setCentresDepot] = useState<any[]>([])
+  const [centresExam, setCentresExam] = useState<any[]>([])
+  const [loadingCentres, setLoadingCentres] = useState(false)
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<EnrollmentFormData>({
     defaultValues: {
@@ -82,6 +84,7 @@ const EnrollmentForm = () => {
 
   useEffect(() => {
     loadRegions()
+    loadCentres()
     if (ecoleId) {
       loadEcole(parseInt(ecoleId))
     } else {
@@ -188,6 +191,29 @@ const EnrollmentForm = () => {
     }
   }
 
+  const loadCentres = async () => {
+    setLoadingCentres(true)
+    try {
+      const [depotsRes, examsRes] = await Promise.all([
+        centreService.getDepots(),
+        centreService.getExams()
+      ])
+      
+      if (depotsRes.success && depotsRes.data) {
+        setCentresDepot(depotsRes.data)
+      }
+      
+      if (examsRes.success && examsRes.data) {
+        setCentresExam(examsRes.data)
+      }
+    } catch (error) {
+      console.error('Erreur chargement centres:', error)
+      toast.error('Erreur lors du chargement des centres')
+    } finally {
+      setLoadingCentres(false)
+    }
+  }
+
   const onSubmit = async (data: EnrollmentFormData) => {
     // Vérifier à nouveau que le concours est valide avant de soumettre
     if (concoursId && concours) {
@@ -221,10 +247,8 @@ const EnrollmentForm = () => {
       
       formData.append('region_origine', data.region_origine)
       formData.append('departement_origine', data.departement_origine)
-      formData.append('centre_depot_nom', data.centre_depot_nom)
-      formData.append('centre_depot_lieu', data.centre_depot_lieu)
-      formData.append('centre_exam_nom', data.centre_exam_nom)
-      formData.append('centre_exam_lieu', data.centre_exam_lieu)
+      formData.append('id_centre_depot', data.id_centre_depot)
+      formData.append('id_centre_exam', data.id_centre_exam)
       formData.append('date_concour', data.date_concour)
       formData.append('annee_academique', data.annee_academique)
       
@@ -506,66 +530,71 @@ const EnrollmentForm = () => {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Centre de dépôt - Nom <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      {...register('centre_depot_nom', { required: 'Le nom du centre est requis' })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                      placeholder="Ex: Centre Yaoundé"
-                    />
-                    {errors.centre_depot_nom && (
-                      <p className="mt-1 text-sm text-red-600">{errors.centre_depot_nom.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Centre de dépôt - Lieu <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      {...register('centre_depot_lieu', { required: 'Le lieu est requis' })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                      placeholder="Ex: Yaoundé, Cameroun"
-                    />
-                    {errors.centre_depot_lieu && (
-                      <p className="mt-1 text-sm text-red-600">{errors.centre_depot_lieu.message}</p>
-                    )}
-                  </div>
+                <div className="bg-gradient-to-br from-primary-50 to-secondary-50 border-2 border-primary-200 rounded-xl p-6 mb-6">
+                  <h4 className="font-bold text-gray-900 mb-2 flex items-center">
+                    <MapPin className="h-5 w-5 text-primary-600 mr-2" />
+                    Informations importantes
+                  </h4>
+                  <p className="text-sm text-gray-700">
+                    Sélectionnez le centre où vous déposerez votre dossier physique et le centre où vous passerez l'examen.
+                    Ces centres peuvent être différents selon votre localisation.
+                  </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Centre d'examen - Nom <span className="text-red-500">*</span>
+                      Centre de dépôt <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      {...register('centre_exam_nom', { required: 'Le nom du centre est requis' })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                      placeholder="Ex: Centre Douala"
-                    />
-                    {errors.centre_exam_nom && (
-                      <p className="mt-1 text-sm text-red-600">{errors.centre_exam_nom.message}</p>
+                    <select
+                      {...register('id_centre_depot', { required: 'Le centre de dépôt est requis' })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                      disabled={loadingCentres}
+                    >
+                      <option value="">
+                        {loadingCentres ? 'Chargement...' : 'Sélectionnez un centre de dépôt'}
+                      </option>
+                      {centresDepot.map((centre) => (
+                        <option key={centre.id_centre} value={centre.id_centre}>
+                          {centre.nom_centre} - {centre.ville} ({centre.region})
+                        </option>
+                      ))}
+                    </select>
+                    {errors.id_centre_depot && (
+                      <p className="mt-1 text-sm text-red-600">{errors.id_centre_depot.message}</p>
+                    )}
+                    {centresDepot.length > 0 && (
+                      <p className="mt-2 text-xs text-gray-600">
+                        {centresDepot.length} centres de dépôt disponibles
+                      </p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Centre d'examen - Lieu <span className="text-red-500">*</span>
+                      Centre d'examen <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      {...register('centre_exam_lieu', { required: 'Le lieu est requis' })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                      placeholder="Ex: Douala, Cameroun"
-                    />
-                    {errors.centre_exam_lieu && (
-                      <p className="mt-1 text-sm text-red-600">{errors.centre_exam_lieu.message}</p>
+                    <select
+                      {...register('id_centre_exam', { required: 'Le centre d\'examen est requis' })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                      disabled={loadingCentres}
+                    >
+                      <option value="">
+                        {loadingCentres ? 'Chargement...' : 'Sélectionnez un centre d\'examen'}
+                      </option>
+                      {centresExam.map((centre) => (
+                        <option key={centre.id_centre} value={centre.id_centre}>
+                          {centre.nom_centre} - {centre.ville} ({centre.region})
+                        </option>
+                      ))}
+                    </select>
+                    {errors.id_centre_exam && (
+                      <p className="mt-1 text-sm text-red-600">{errors.id_centre_exam.message}</p>
+                    )}
+                    {centresExam.length > 0 && (
+                      <p className="mt-2 text-xs text-gray-600">
+                        {centresExam.length} centres d'examen disponibles
+                      </p>
                     )}
                   </div>
                 </div>
@@ -578,10 +607,15 @@ const EnrollmentForm = () => {
                     type="date"
                     {...register('date_concour', { required: 'La date est requise' })}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    value={concours?.date_debut || ''}
+                    readOnly
                   />
                   {errors.date_concour && (
                     <p className="mt-1 text-sm text-red-600">{errors.date_concour.message}</p>
                   )}
+                  <p className="mt-2 text-xs text-gray-600">
+                    Date du concours (automatique)
+                  </p>
                 </div>
               </div>
             )}
