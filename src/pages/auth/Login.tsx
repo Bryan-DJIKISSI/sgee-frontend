@@ -22,14 +22,21 @@ const Login = () => {
       const response = await login(data)
       console.log('Login response:', response)
       console.log('User after login:', response.user)
+      console.log('User role:', response.user?.role)
+      console.log('Role intitule:', response.user?.role?.intitule)
       
       toast.success('Connexion réussie !')
       
       // Attendre un peu pour que le state soit mis à jour
       setTimeout(() => {
-        if (response.user?.role?.intitule === 'ADMIN') {
+        const isAdmin = response.user?.role?.intitule === 'ADMIN'
+        console.log('Is admin?', isAdmin)
+        
+        if (isAdmin) {
+          console.log('Redirecting to /admin')
           navigate('/admin')
         } else {
+          console.log('Redirecting to /dashboard')
           navigate('/dashboard')
         }
       }, 100)

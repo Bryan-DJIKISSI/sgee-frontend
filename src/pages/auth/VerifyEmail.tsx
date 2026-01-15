@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
+import { useAuth } from '../../contexts/AuthContext'
 import { authService } from '../../services/authService'
 import { Mail, CheckCircle, RefreshCw } from 'lucide-react'
 
@@ -13,6 +14,7 @@ interface VerifyFormData {
 const VerifyEmail = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { login } = useAuth()
   const email = location.state?.email || ''
   const { register, handleSubmit, formState: { errors } } = useForm<VerifyFormData>({
     defaultValues: { email }
@@ -27,13 +29,19 @@ const VerifyEmail = () => {
       
       // Si le backend retourne un token, on connecte automatiquement l'utilisateur
       if (response.token && response.user) {
+        // Utiliser la fonction login du contexte pour mettre à jour l'état
         localStorage.setItem('token', response.token)
         localStorage.setItem('user', JSON.stringify(response.user))
         
+        // Forcer le rechargement de la page pour mettre à jour le contexte
         toast.success('Email vérifié avec succès ! Bienvenue 🎉')
         
-        // Rediriger vers les concours disponibles pour commencer
-        navigate('/concours')
+        // Vérifier le rôle et rediriger
+        if (response.user.role?.intitule === 'ADMIN') {
+          window.location.href = '/admin'
+        } else {
+          window.location.href = '/concours'
+        }
       } else {
         toast.success('Email vérifié avec succès !')
         navigate('/login')
