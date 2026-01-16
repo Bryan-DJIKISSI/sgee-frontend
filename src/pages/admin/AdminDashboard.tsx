@@ -13,28 +13,48 @@ import {
   Settings
 } from 'lucide-react'
 import AdminLayout from '../../components/AdminLayout'
+import { statsService } from '../../services/statsService'
+import { toast } from 'react-toastify'
+
+interface AdminStats {
+  totalCandidats: number
+  totalEcoles: number
+  totalConcours: number
+  concoursOuverts: number
+  enrollementsTotal: number
+  enrollementsEnAttente: number
+  enrollementsValides: number
+  enrollementsRejetes: number
+}
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<AdminStats>({
     totalCandidats: 0,
     totalEcoles: 0,
     totalConcours: 0,
+    concoursOuverts: 0,
+    enrollementsTotal: 0,
     enrollementsEnAttente: 0,
     enrollementsValides: 0,
     enrollementsRejetes: 0,
   })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Charger les statistiques depuis l'API
-    setStats({
-      totalCandidats: 1250,
-      totalEcoles: 15,
-      totalConcours: 8,
-      enrollementsEnAttente: 45,
-      enrollementsValides: 892,
-      enrollementsRejetes: 23,
-    })
+    loadStats()
   }, [])
+
+  const loadStats = async () => {
+    try {
+      const data = await statsService.getAdminStats()
+      setStats(data)
+    } catch (error) {
+      console.error('Erreur chargement statistiques:', error)
+      toast.error('Erreur lors du chargement des statistiques')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const statCards = [
     {
@@ -55,7 +75,7 @@ const AdminDashboard = () => {
     },
     {
       title: 'Concours Actifs',
-      value: stats.totalConcours,
+      value: stats.concoursOuverts,
       icon: FileText,
       color: 'bg-green-500',
       bgColor: 'bg-green-50',
@@ -141,7 +161,13 @@ const AdminDashboard = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
-                    <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-3xl font-bold text-gray-900">
+                      {loading ? (
+                        <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+                      ) : (
+                        stat.value
+                      )}
+                    </p>
                   </div>
                   <div className={`${stat.bgColor} p-4 rounded-xl`}>
                     <Icon className={`h-8 w-8 ${stat.textColor}`} />

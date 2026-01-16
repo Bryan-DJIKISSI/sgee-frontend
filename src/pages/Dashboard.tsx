@@ -4,6 +4,7 @@ import { BookOpen, FileText, Calendar, TrendingUp, CheckCircle, Clock, AlertCirc
 import Layout from '../components/Layout'
 import { useAuth } from '../contexts/AuthContext'
 import { ecoleService } from '../services/ecoleService'
+import { statsService } from '../services/statsService'
 import { toast } from 'react-toastify'
 
 interface Ecole {
@@ -14,13 +15,28 @@ interface Ecole {
   ville?: string
 }
 
+interface CandidatStats {
+  totalInscriptions: number
+  enAttente: number
+  valides: number
+  rejetes: number
+}
+
 const Dashboard = () => {
   const { user } = useAuth()
   const [ecoles, setEcoles] = useState<Ecole[]>([])
   const [loadingEcoles, setLoadingEcoles] = useState(true)
+  const [stats, setStats] = useState<CandidatStats>({
+    totalInscriptions: 0,
+    enAttente: 0,
+    valides: 0,
+    rejetes: 0,
+  })
+  const [loadingStats, setLoadingStats] = useState(true)
 
   useEffect(() => {
     loadEcoles()
+    loadStats()
   }, [])
 
   const loadEcoles = async () => {
@@ -37,10 +53,21 @@ const Dashboard = () => {
     }
   }
 
-  const stats = [
-    { label: 'Inscriptions', value: '0', icon: FileText, color: 'from-primary-500 to-primary-600', bgColor: 'bg-primary-50' },
-    { label: 'En attente', value: '0', icon: Clock, color: 'from-accent-500 to-accent-600', bgColor: 'bg-accent-50' },
-    { label: 'Validées', value: '0', icon: CheckCircle, color: 'from-secondary-500 to-secondary-600', bgColor: 'bg-secondary-50' },
+  const loadStats = async () => {
+    try {
+      const data = await statsService.getCandidatStats()
+      setStats(data)
+    } catch (error) {
+      console.error('Erreur chargement statistiques:', error)
+    } finally {
+      setLoadingStats(false)
+    }
+  }
+
+  const statCards = [
+    { label: 'Inscriptions', value: stats.totalInscriptions, icon: FileText, color: 'from-primary-500 to-primary-600', bgColor: 'bg-primary-50' },
+    { label: 'En attente', value: stats.enAttente, icon: Clock, color: 'from-accent-500 to-accent-600', bgColor: 'bg-accent-50' },
+    { label: 'Validées', value: stats.valides, icon: CheckCircle, color: 'from-secondary-500 to-secondary-600', bgColor: 'bg-secondary-50' },
   ]
 
   return (
@@ -70,17 +97,25 @@ const Dashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid md:grid-cols-3 gap-6">
-          {stats.map((stat, index) => (
+          {statCards.map((stat, index) => (
             <div key={index} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all p-6 border border-gray-100">
               <div className="flex items-center justify-between mb-4">
                 <div className={`w-14 h-14 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
                   <stat.icon className="h-7 w-7 text-primary-600" />
                 </div>
                 <div className={`px-3 py-1 bg-gradient-to-r ${stat.color} rounded-lg`}>
-                  <span className="text-xs font-semibold text-white">+0%</span>
+                  <span className="text-xs font-semibold text-white">
+                    {loadingStats ? '...' : '+0%'}
+                  </span>
                 </div>
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</h3>
+              <h3 className="text-3xl font-bold text-gray-900 mb-1">
+                {loadingStats ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+                ) : (
+                  stat.value
+                )}
+              </h3>
               <p className="text-sm text-gray-600">{stat.label}</p>
             </div>
           ))}
