@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import { enrollmentService } from '../services/enrollmentService'
 import { ecoleService } from '../services/ecoleService'
+import { concoursService } from '../services/concoursService'
 import { regionService } from '../services/regionService'
 import { centreService } from '../services/centreService'
 import DashboardLayout from '../components/DashboardLayout'
@@ -59,6 +60,7 @@ interface EnrollmentFormData {
 
 const EnrollmentForm = () => {
   const [searchParams] = useSearchParams()
+  const { ecoleId: ecoleIdParam } = useParams<{ ecoleId: string }>()
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -78,7 +80,7 @@ const EnrollmentForm = () => {
     }
   })
 
-  const ecoleId = searchParams.get('ecole')
+  const ecoleId = ecoleIdParam || searchParams.get('ecole')
   const concoursId = searchParams.get('concours')
   const selectedRegion = watch('region_origine')
 

@@ -1,10 +1,41 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, FileText, Calendar, TrendingUp, CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import { BookOpen, FileText, Calendar, TrendingUp, CheckCircle, Clock, AlertCircle, Building2 } from 'lucide-react'
 import Layout from '../components/Layout'
 import { useAuth } from '../contexts/AuthContext'
+import { ecoleService } from '../services/ecoleService'
+import { toast } from 'react-toastify'
+
+interface Ecole {
+  id_ecole: number
+  nom_ecole: string
+  sigle?: string
+  logo_path?: string
+  ville?: string
+}
 
 const Dashboard = () => {
   const { user } = useAuth()
+  const [ecoles, setEcoles] = useState<Ecole[]>([])
+  const [loadingEcoles, setLoadingEcoles] = useState(true)
+
+  useEffect(() => {
+    loadEcoles()
+  }, [])
+
+  const loadEcoles = async () => {
+    try {
+      const response = await ecoleService.getAll()
+      if (response.success && response.data) {
+        setEcoles(response.data.slice(0, 6)) // Afficher les 6 premières écoles
+      }
+    } catch (error) {
+      console.error('Erreur chargement écoles:', error)
+      toast.error('Erreur lors du chargement des écoles')
+    } finally {
+      setLoadingEcoles(false)
+    }
+  }
 
   const stats = [
     { label: 'Inscriptions', value: '0', icon: FileText, color: 'from-primary-500 to-primary-600', bgColor: 'bg-primary-50' },
@@ -98,6 +129,87 @@ const Dashboard = () => {
             <h3 className="text-2xl font-bold text-white mb-2">Calendrier</h3>
             <p className="text-white/80">Dates importantes des concours</p>
           </div>
+        </div>
+
+        {/* Écoles disponibles */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Écoles disponibles</h2>
+              <p className="text-gray-600">Choisissez une école pour voir les concours</p>
+            </div>
+            <Link
+              to="/concours"
+              className="text-primary-600 hover:text-primary-700 font-semibold text-sm flex items-center"
+            >
+              Voir tous les concours →
+            </Link>
+          </div>
+
+          {loadingEcoles ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            </div>
+          ) : ecoles.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {ecoles.map((ecole) => (
+                <Link
+                  key={ecole.id_ecole}
+                  to="/concours"
+                  className="group bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100 hover:border-primary-300 rounded-xl p-6 transition-all hover:shadow-lg"
+                >
+                  <div className="flex items-center space-x-4 mb-4">
+                    {ecole.logo_path ? (
+                      <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center overflow-hidden border-2 border-gray-100 group-hover:border-primary-300 transition-all">
+                        <img 
+                          src={`${import.meta.env.VITE_BASE_URL}/storage/${ecole.logo_path}`}
+                          alt={ecole.nom_ecole}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.currentTarget
+                            target.style.display = 'none'
+                            const parent = target.parentElement
+                            if (parent) {
+                              const icon = document.createElement('div')
+                              icon.className = 'w-full h-full flex items-center justify-center'
+                              icon.innerHTML = '<svg class="h-8 w-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>'
+                              parent.appendChild(icon)
+                            }
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-xl flex items-center justify-center border-2 border-primary-200 group-hover:border-primary-300 transition-all">
+                        <Building2 className="h-8 w-8 text-primary-600" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2">
+                        {ecole.nom_ecole}
+                      </h3>
+                      {ecole.sigle && (
+                        <p className="text-sm text-gray-600">{ecole.sigle}</p>
+                      )}
+                    </div>
+                  </div>
+                  {ecole.ville && (
+                    <p className="text-sm text-gray-600 flex items-center">
+                      <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {ecole.ville}
+                    </p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Building2 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Aucune école disponible pour le moment</p>
+            </div>
+          )}
         </div>
 
         {/* Info Cards */}
