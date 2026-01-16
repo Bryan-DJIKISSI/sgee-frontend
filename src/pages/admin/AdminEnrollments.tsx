@@ -83,6 +83,39 @@ const AdminEnrollments = () => {
     }
   }
 
+  const handleDownloadReceipt = async (enrollmentId: number) => {
+    try {
+      const baseUrl = import.meta.env.VITE_BASE_URL || 'http://localhost:8000'
+      const token = localStorage.getItem('token')
+      
+      const response = await fetch(`${baseUrl}/api/enrollements/${enrollmentId}/download-receipt`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/pdf',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Erreur lors du téléchargement')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `recu_inscription_${enrollmentId}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      
+      toast.success('Reçu téléchargé avec succès')
+    } catch (error) {
+      toast.error('Erreur lors du téléchargement du reçu')
+    }
+  }
+
   const handleViewDetails = (enrollment: Enrollment) => {
     setSelectedEnrollment(enrollment)
     setShowModal(true)
@@ -298,6 +331,15 @@ const AdminEnrollments = () => {
                               <XCircle className="h-5 w-5" />
                             </button>
                           </>
+                        )}
+                        {enrollment.statut === 'validé' && (
+                          <button
+                            onClick={() => handleDownloadReceipt(enrollment.id_enrollement)}
+                            className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                            title="Télécharger le reçu"
+                          >
+                            <Download className="h-5 w-5" />
+                          </button>
                         )}
                       </div>
                     </td>

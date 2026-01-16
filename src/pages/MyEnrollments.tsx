@@ -39,6 +39,39 @@ const MyEnrollments = () => {
     }
   }
 
+  const handleDownloadReceipt = async (enrollmentId: number) => {
+    try {
+      const baseUrl = import.meta.env.VITE_BASE_URL || 'http://localhost:8000'
+      const token = localStorage.getItem('token')
+      
+      const response = await fetch(`${baseUrl}/api/enrollements/${enrollmentId}/download-receipt`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/pdf',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Erreur lors du téléchargement')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `recu_inscription_${enrollmentId}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      
+      toast.success('Reçu téléchargé avec succès')
+    } catch (error) {
+      toast.error('Erreur lors du téléchargement du reçu')
+    }
+  }
+
   const getStatusBadge = (statut?: string) => {
     const badges = {
       'en_attente': { 
@@ -224,8 +257,11 @@ const MyEnrollments = () => {
                   <div className="flex flex-col items-end space-y-4">
                     {getStatusBadge(enrollment.statut)}
                     
-                    {enrollment.statut === 'validé' && enrollment.qr_code && (
-                      <button className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+                    {enrollment.statut === 'validé' && (
+                      <button 
+                        onClick={() => handleDownloadReceipt(enrollment.id_enrollement)}
+                        className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                      >
                         <Download className="h-5 w-5 mr-2" />
                         Télécharger le reçu
                       </button>

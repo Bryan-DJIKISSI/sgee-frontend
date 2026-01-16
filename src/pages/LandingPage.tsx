@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BookOpen, Calendar, FileText, CheckCircle, ArrowRight, GraduationCap, Shield, Clock, Users, School, MapPin } from 'lucide-react'
+import { BookOpen, Calendar, FileText, CheckCircle, ArrowRight, GraduationCap, Shield, Clock, Users, School } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { useState, useEffect } from 'react'
 import { concoursService, type Concours } from '../services/concoursService'
