@@ -208,11 +208,15 @@ const CandidatStats = () => {
     }
   }
 
-  const filteredCandidats = candidats.filter(c =>
-    c.user.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.user.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredCandidats = candidats.filter(c => {
+    if (!c.user) return false
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      c.user.nom?.toLowerCase().includes(searchLower) ||
+      c.user.prenom?.toLowerCase().includes(searchLower) ||
+      c.user.email?.toLowerCase().includes(searchLower)
+    )
+  })
 
   const getStatutBadge = (statut: string) => {
     const styles = {
@@ -425,20 +429,20 @@ const CandidatStats = () => {
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-semibold text-gray-900">
-                          {candidat.user.nom} {candidat.user.prenom}
+                          {candidat.user?.nom || 'N/A'} {candidat.user?.prenom || ''}
                         </p>
-                        <p className="text-sm text-gray-600">{candidat.user.email}</p>
+                        <p className="text-sm text-gray-600">{candidat.user?.email || 'N/A'}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {candidat.filiere.departement.ecole.nom_ecole}
+                      {candidat.filiere?.departement?.ecole?.nom_ecole || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {candidat.filiere.intitule}
+                      {candidat.filiere?.intitule || 'N/A'}
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                        {candidat.filiere.niveau}
+                        {candidat.filiere?.niveau || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
