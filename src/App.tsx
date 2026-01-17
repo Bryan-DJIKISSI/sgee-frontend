@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard'
 import ConcoursAvailable from './pages/ConcoursAvailable'
 import EcolesList from './pages/EcolesList'
 import EnrollmentForm from './pages/EnrollmentForm'
+import EnrollmentFormNew from './pages/EnrollmentFormNew'
 import MyEnrollments from './pages/MyEnrollments'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminEcoles from './pages/admin/AdminEcoles'
@@ -56,6 +57,11 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/enrollment/:ecoleId" element={
+              <ProtectedRoute>
+                <EnrollmentFormNew />
+              </ProtectedRoute>
+            } />
+            <Route path="/enrollment-old/:ecoleId" element={
               <ProtectedRoute>
                 <EnrollmentForm />
               </ProtectedRoute>
