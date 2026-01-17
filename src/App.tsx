@@ -18,6 +18,10 @@ import AdminEcoles from './pages/admin/AdminEcoles'
 import AdminConcours from './pages/admin/AdminConcours'
 import AdminCentres from './pages/admin/AdminCentres'
 import AdminEnrollments from './pages/admin/AdminEnrollments'
+import EcoleManagement from './pages/admin/EcoleManagement'
+import DepartementManagement from './pages/admin/DepartementManagement'
+import FiliereManagement from './pages/admin/FiliereManagement'
+import CandidatStats from './pages/admin/CandidatStats'
 
 // Components
 import ProtectedRoute from './components/ProtectedRoute'
@@ -70,7 +74,22 @@ function App() {
             } />
             <Route path="/admin/ecoles" element={
               <AdminRoute>
-                <AdminEcoles />
+                <EcoleManagement />
+              </AdminRoute>
+            } />
+            <Route path="/admin/departements" element={
+              <AdminRoute>
+                <DepartementManagement />
+              </AdminRoute>
+            } />
+            <Route path="/admin/filieres" element={
+              <AdminRoute>
+                <FiliereManagement />
+              </AdminRoute>
+            } />
+            <Route path="/admin/candidats" element={
+              <AdminRoute>
+                <CandidatStats />
               </AdminRoute>
             } />
             <Route path="/admin/concours" element={

@@ -1,0 +1,482 @@
+import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify'
+import AdminLayout from '../../components/AdminLayout'
+import { 
+  Plus, Edit, Trash2, Building2, MapPin, Phone, Mail, 
+  Search, X, Save, Globe
+} from 'lucide-react'
+
+interface Ecole {
+  id_ecole: number
+  nom_ecole: string
+  sigle?: string
+  description?: string
+  adresse?: string
+  ville?: string
+  telephone?: string
+  email?: string
+  latitude?: number
+  longitude?: number
+  logo_path?: string
+  actif: boolean
+}
+
+const EcoleManagement = () => {
+  const [ecoles, setEcoles] = useState<Ecole[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [editingEcole, setEditingEcole] = useState<Ecole | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [formData, setFormData] = useState({
+    nom_ecole: '',
+    sigle: '',
+    description: '',
+    adresse: '',
+    ville: '',
+    telephone: '',
+    email: '',
+    latitude: '',
+    longitude: '',
+    actif: true
+  })
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+
+  useEffect(() => {
+    loadEcoles()
+  }, [])
+
+  const loadEcoles = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/ecoles`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const data = await response.json()
+      if (data.success) {
+        setEcoles(data.data || [])
+      }
+    } catch (error) {
+      toast.error('Erreur lors du chargement des écoles')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const token = localStorage.getItem('token')
+    const formDataToSend = new FormData()
+    
+    Object.entries(formData).forEach(([key, value]) => {
+      formDataToSend.append(key, value.toString())
+    })
+    
+    if (logoFile) {
+      formDataToSend.append('logo', logoFile)
+    }
+
+    // Laravel workaround for PUT with FormData
+    if (editingEcole) {
+      formDataToSend.append('_method', 'PUT')
+    }
+
+    try {
+      const url = editingEcole 
+        ? `${import.meta.env.VITE_API_URL}/ecoles/${editingEcole.id_ecole}`
+        : `${import.meta.env.VITE_API_URL}/ecoles`
+      
+      const response = await fetch(url, {
+        method: 'POST', // Always POST, Laravel will handle _method
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataToSend
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        toast.success(data.message || (editingEcole ? 'École modifiée avec succès' : 'École créée avec succès'))
+        loadEcoles()
+        closeModal()
+      } else {
+        const errorMsg = data.errors ? Object.values(data.errors).flat().join(', ') : data.message || 'Erreur'
+        toast.error(errorMsg)
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'enregistrement')
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette école ?')) return
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/ecoles/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        toast.success('École supprimée avec succès')
+        loadEcoles()
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la suppression')
+    }
+  }
+
+  const openModal = (ecole?: Ecole) => {
+    if (ecole) {
+      setEditingEcole(ecole)
+      setFormData({
+        nom_ecole: ecole.nom_ecole,
+        sigle: ecole.sigle || '',
+        description: ecole.description || '',
+        adresse: ecole.adresse || '',
+        ville: ecole.ville || '',
+        telephone: ecole.telephone || '',
+        email: ecole.email || '',
+        latitude: ecole.latitude?.toString() || '',
+        longitude: ecole.longitude?.toString() || '',
+        actif: ecole.actif
+      })
+    } else {
+      setEditingEcole(null)
+      setFormData({
+        nom_ecole: '',
+        sigle: '',
+        description: '',
+        adresse: '',
+        ville: '',
+        telephone: '',
+        email: '',
+        latitude: '',
+        longitude: '',
+        actif: true
+      })
+    }
+    setLogoFile(null)
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setEditingEcole(null)
+    setLogoFile(null)
+  }
+
+  const filteredEcoles = ecoles.filter(ecole =>
+    ecole.nom_ecole.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ecole.sigle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ecole.ville?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Gestion des Écoles</h1>
+            <p className="text-gray-600 mt-1">Gérez les écoles et leurs informations</p>
+          </div>
+          <button
+            onClick={() => openModal()}
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Nouvelle École
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Rechercher une école..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Écoles Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredEcoles.map((ecole) => (
+            <div key={ecole.id_ecole} className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-all">
+              {/* Logo */}
+              <div className="h-32 bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">
+                {ecole.logo_path ? (
+                  <img 
+                    src={`${import.meta.env.VITE_BASE_URL}/storage/${ecole.logo_path}`}
+                    alt={ecole.nom_ecole}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Building2 className="h-16 w-16 text-primary-600" />
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">{ecole.nom_ecole}</h3>
+                    {ecole.sigle && (
+                      <p className="text-sm text-gray-600">{ecole.sigle}</p>
+                    )}
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    ecole.actif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {ecole.actif ? 'Actif' : 'Inactif'}
+                  </span>
+                </div>
+
+                {ecole.description && (
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{ecole.description}</p>
+                )}
+
+                <div className="space-y-2 text-sm text-gray-600 mb-4">
+                  {ecole.ville && (
+                    <div className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                      {ecole.ville}
+                    </div>
+                  )}
+                  {ecole.telephone && (
+                    <div className="flex items-center">
+                      <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                      {ecole.telephone}
+                    </div>
+                  )}
+                  {ecole.email && (
+                    <div className="flex items-center">
+                      <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                      {ecole.email}
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex space-x-2 pt-4 border-t border-gray-100">
+                  <button
+                    onClick={() => openModal(ecole)}
+                    className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Modifier
+                  </button>
+                  <button
+                    onClick={() => handleDelete(ecole.id_ecole)}
+                    className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filteredEcoles.length === 0 && !loading && (
+          <div className="text-center py-12 bg-white rounded-xl shadow-md">
+            <Building2 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Aucune école trouvée</h3>
+            <p className="text-gray-600">
+              {searchTerm ? 'Aucune école ne correspond à votre recherche' : 'Commencez par créer une école'}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {editingEcole ? 'Modifier l\'école' : 'Nouvelle école'}
+              </h2>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Nom de l'école <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.nom_ecole}
+                    onChange={(e) => setFormData({...formData, nom_ecole: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Sigle
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.sigle}
+                    onChange={(e) => setFormData({...formData, sigle: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Ville
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.ville}
+                    onChange={(e) => setFormData({...formData, ville: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Adresse
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.adresse}
+                    onChange={(e) => setFormData({...formData, adresse: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Téléphone
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.telephone}
+                    onChange={(e) => setFormData({...formData, telephone: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Latitude
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.latitude}
+                    onChange={(e) => setFormData({...formData, latitude: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Ex: 3.8480"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Longitude
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.longitude}
+                    onChange={(e) => setFormData({...formData, longitude: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Ex: 11.5021"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Logo
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={formData.actif}
+                      onChange={(e) => setFormData({...formData, actif: e.target.checked})}
+                      className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <span className="text-sm font-semibold text-gray-700">École active</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex space-x-4 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                >
+                  <Save className="h-5 w-5 mr-2" />
+                  {editingEcole ? 'Modifier' : 'Créer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </AdminLayout>
+  )
+}
+
+export default EcoleManagement

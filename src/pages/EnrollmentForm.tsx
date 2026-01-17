@@ -260,11 +260,22 @@ const EnrollmentForm = () => {
 
       const response = await enrollmentService.create(formData)
       if (response.success) {
-        toast.success('Inscription enregistrée avec succès!')
-        navigate('/my-enrollments')
+        toast.success('🎉 Inscription enregistrée avec succès ! Votre dossier sera examiné par l\'administration.', {
+          autoClose: 5000,
+          position: 'top-center',
+        })
+        
+        // Rediriger après un court délai pour que l'utilisateur voie le message
+        setTimeout(() => {
+          navigate('/my-enrollments')
+        }, 1500)
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erreur lors de l\'inscription')
+      console.error('Erreur inscription:', error)
+      const errorMessage = error.response?.data?.message || 'Erreur lors de l\'inscription. Veuillez réessayer.'
+      toast.error(errorMessage, {
+        autoClose: 5000,
+      })
     } finally {
       setLoading(false)
     }

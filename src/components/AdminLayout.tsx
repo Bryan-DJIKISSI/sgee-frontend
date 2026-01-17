@@ -41,9 +41,24 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       path: '/admin',
     },
     {
+      title: 'Candidats',
+      icon: Users,
+      path: '/admin/candidats',
+    },
+    {
       title: 'Écoles',
       icon: School,
       path: '/admin/ecoles',
+    },
+    {
+      title: 'Départements',
+      icon: BookOpen,
+      path: '/admin/departements',
+    },
+    {
+      title: 'Filières',
+      icon: BookOpen,
+      path: '/admin/filieres',
     },
     {
       title: 'Concours',
