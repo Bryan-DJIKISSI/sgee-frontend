@@ -85,14 +85,34 @@ const CandidatStats = () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/candidats/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const data = await response.json()
+      
       if (data.success) {
         setGlobalStats(data.data.global)
-        setEcoleStats(data.data.par_ecole)
-        setFiliereStats(data.data.par_filiere)
+        setEcoleStats(data.data.par_ecole || [])
+        setFiliereStats(data.data.par_filiere || [])
+      } else {
+        console.error('Erreur API:', data)
+        toast.error('Erreur lors du chargement des statistiques')
       }
     } catch (error) {
+      console.error('Erreur chargement stats:', error)
       toast.error('Erreur lors du chargement des statistiques')
+      // Initialiser avec des valeurs par défaut
+      setGlobalStats({
+        total_candidats: 0,
+        total_enrollements: 0,
+        valides: 0,
+        en_attente: 0,
+        rejetes: 0
+      })
+      setEcoleStats([])
+      setFiliereStats([])
     } finally {
       setLoading(false)
     }
@@ -111,12 +131,22 @@ const CandidatStats = () => {
         `${import.meta.env.VITE_API_URL}/candidats/list?${params}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       )
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const data = await response.json()
+      
       if (data.success) {
-        setCandidats(data.data)
+        setCandidats(data.data || [])
+      } else {
+        console.error('Erreur API candidats:', data)
+        setCandidats([])
       }
     } catch (error) {
       console.error('Erreur chargement candidats:', error)
+      setCandidats([])
     }
   }
 
