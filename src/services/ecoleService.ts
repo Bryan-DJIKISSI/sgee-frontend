@@ -28,6 +28,8 @@ export const ecoleService = {
   },
 
   update: async (id: number, formData: FormData): Promise<ApiResponse<Ecole>> => {
+    // Ajouter _method pour simuler PUT avec FormData
+    formData.append('_method', 'PUT')
     const response = await api.post<ApiResponse<Ecole>>(`/ecoles/${id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',

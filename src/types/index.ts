@@ -44,8 +44,25 @@ export interface Ecole {
   description?: string
   adresse?: string
   ville?: string
+  telephone?: string
+  email?: string
+  site_web?: string
+  bp?: string
   logo_path?: string
+  logo_universite_path?: string
   actif: boolean
+  // Informations officielles FR
+  republique_fr?: string
+  devise_fr?: string
+  ministere_fr?: string
+  universite_fr?: string
+  slogan_fr?: string
+  // Informations officielles EN
+  republique_en?: string
+  devise_en?: string
+  ministere_en?: string
+  universite_en?: string
+  slogan_en?: string
   departements?: Departement[]
   concours?: Concours[]
   created_at?: string

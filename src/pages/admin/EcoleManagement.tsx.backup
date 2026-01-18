@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import AdminLayout from '../../components/AdminLayout'
 import { 
@@ -23,7 +22,6 @@ interface Ecole {
 }
 
 const EcoleManagement = () => {
-  const navigate = useNavigate()
   const [ecoles, setEcoles] = useState<Ecole[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -240,7 +238,7 @@ const EcoleManagement = () => {
             <p className="text-gray-600 mt-1">Gérez les écoles et leurs informations</p>
           </div>
           <button
-            onClick={() => navigate('/admin/ecoles/create')}
+            onClick={() => openModal()}
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
             <Plus className="h-5 w-5 mr-2" />

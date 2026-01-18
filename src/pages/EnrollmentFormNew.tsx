@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import DashboardLayout from '../components/DashboardLayout'
+import PaymentReceiptUpload from '../components/PaymentReceiptUpload'
+import type { ExtractedPaymentData } from '../types/payment'
 import { 
   GraduationCap, MapPin, Upload, CheckCircle, 
-  ArrowRight, ArrowLeft, FileText, AlertCircle
+  ArrowRight, ArrowLeft, FileText, AlertCircle, CreditCard
 } from 'lucide-react'
 
 interface Ecole {
@@ -89,7 +91,8 @@ const EnrollmentFormNew = () => {
   const [selectedCentreDepot, setSelectedCentreDepot] = useState('')
   const [selectedCentreExam, setSelectedCentreExam] = useState('')
   const [documents, setDocuments] = useState<{ [key: string]: File }>({})
-
+  const [paymentReceipt, setPaymentReceipt] = useState<File | null>(null)
+  const [paymentData, setPaymentData] = useState<ExtractedPaymentData | null>(null)
   useEffect(() => {
     if (ecoleId) {
       loadEcole(parseInt(ecoleId))
@@ -183,6 +186,11 @@ const EnrollmentFormNew = () => {
     }
   }
 
+  const handlePaymentReceiptSelect = (file: File | null, extracted: ExtractedPaymentData | null) => {
+    setPaymentReceipt(file)
+    setPaymentData(extracted)
+  }
+
   const handleSubmit = async () => {
     if (!selectedFiliere) {
       toast.error('Veuillez sélectionner une filière')
@@ -202,6 +210,11 @@ const EnrollmentFormNew = () => {
       return
     }
 
+    if (!paymentReceipt) {
+      toast.error('Veuillez télécharger le reçu de paiement')
+      return
+    }
+
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
@@ -216,6 +229,17 @@ const EnrollmentFormNew = () => {
       Object.entries(documents).forEach(([key, file]) => {
         formData.append(`documents[${key}]`, file)
       })
+
+      // Ajouter le reçu de paiement
+      formData.append('payment_receipt', paymentReceipt)
+
+      // Ajouter les données extraites par OCR si disponibles
+      if (paymentData) {
+        if (paymentData.montant) formData.append('payment_amount', paymentData.montant)
+        if (paymentData.reference) formData.append('payment_reference', paymentData.reference)
+        if (paymentData.date) formData.append('payment_date', paymentData.date)
+        if (paymentData.banque) formData.append('payment_bank', paymentData.banque)
+      }
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/enrollements`, {
         method: 'POST',
@@ -249,6 +273,18 @@ const EnrollmentFormNew = () => {
       toast.error('Veuillez sélectionner les centres')
       return
     }
+    if (step === 3) {
+      const requiredDocs = DOCUMENT_TYPES_BY_LEVEL[selectedFiliere?.niveau || ''] || []
+      const missingDocs = requiredDocs.filter(doc => doc.required && !documents[doc.name])
+      if (missingDocs.length > 0) {
+        toast.error('Veuillez télécharger tous les documents requis')
+        return
+      }
+    }
+    if (step === 4 && !paymentReceipt) {
+      toast.error('Veuillez télécharger le reçu de paiement')
+      return
+    }
     setStep(step + 1)
   }
 
@@ -275,11 +311,11 @@ const EnrollmentFormNew = () => {
               <p className="text-gray-600 mt-1">{ecole?.nom_ecole}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Étape {step} sur 4</p>
+              <p className="text-sm text-gray-600">Étape {step} sur 5</p>
               <div className="w-32 bg-gray-200 rounded-full h-2 mt-2">
                 <div 
                   className="bg-gradient-to-r from-primary-600 to-secondary-600 h-2 rounded-full transition-all"
-                  style={{ width: `${(step / 4) * 100}%` }}
+                  style={{ width: `${(step / 5) * 100}%` }}
                 ></div>
               </div>
             </div>
@@ -291,7 +327,8 @@ const EnrollmentFormNew = () => {
               { num: 1, label: 'Département & Filière', icon: GraduationCap },
               { num: 2, label: 'Centres', icon: MapPin },
               { num: 3, label: 'Documents', icon: Upload },
-              { num: 4, label: 'Vérification', icon: CheckCircle }
+              { num: 4, label: 'Paiement', icon: CreditCard },
+              { num: 5, label: 'Vérification', icon: CheckCircle }
             ].map((s) => (
               <div key={s.num} className="flex items-center">
                 <div className={`flex items-center justify-center w-12 h-12 rounded-full ${
@@ -306,7 +343,7 @@ const EnrollmentFormNew = () => {
                 }`}>
                   {s.label}
                 </span>
-                {s.num < 4 && (
+                {s.num < 5 && (
                   <div className={`w-8 h-1 mx-2 hidden md:block ${
                     step > s.num ? 'bg-primary-600' : 'bg-gray-200'
                   }`}></div>
@@ -468,8 +505,34 @@ const EnrollmentFormNew = () => {
             </div>
           )}
 
-          {/* Step 4: Vérification */}
-          {step === 4 && selectedFiliere && (
+          {/* Step 4: Paiement */}
+          {step === 4 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Reçu de paiement</h2>
+                <p className="text-gray-600">
+                  Téléchargez votre reçu de paiement. Notre système OCR extraira automatiquement les informations.
+                </p>
+              </div>
+
+              <PaymentReceiptUpload 
+                onFileSelect={handlePaymentReceiptSelect}
+                required={true}
+              />
+
+              {paymentData && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <h3 className="font-bold text-green-900 mb-2">✓ Informations vérifiées</h3>
+                  <p className="text-sm text-green-700">
+                    Les informations de paiement ont été extraites avec succès. Vérifiez-les à l'étape suivante.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 5: Vérification */}
+          {step === 5 && selectedFiliere && (
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Vérification</h2>
@@ -515,6 +578,34 @@ const EnrollmentFormNew = () => {
                     ))}
                   </div>
                 </div>
+
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <h3 className="font-bold text-gray-900 mb-3">Paiement</h3>
+                  {paymentReceipt && (
+                    <div className="space-y-2">
+                      <p className="text-sm flex items-center text-green-600">
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Reçu: {paymentReceipt.name}
+                      </p>
+                      {paymentData && (
+                        <div className="mt-3 space-y-1 text-sm">
+                          {paymentData.montant && (
+                            <p><span className="font-semibold">Montant:</span> {paymentData.montant} FCFA</p>
+                          )}
+                          {paymentData.reference && (
+                            <p><span className="font-semibold">Référence:</span> {paymentData.reference}</p>
+                          )}
+                          {paymentData.date && (
+                            <p><span className="font-semibold">Date:</span> {paymentData.date}</p>
+                          )}
+                          {paymentData.banque && (
+                            <p><span className="font-semibold">Banque:</span> {paymentData.banque}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start space-x-3">
@@ -539,7 +630,7 @@ const EnrollmentFormNew = () => {
               </button>
             )}
             
-            {step < 4 ? (
+            {step < 5 ? (
               <button
                 onClick={nextStep}
                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all ml-auto"

@@ -199,7 +199,7 @@ const Dashboard = () => {
                         <img 
                           src={`${import.meta.env.VITE_BASE_URL}/storage/${ecole.logo_path}`}
                           alt={ecole.nom_ecole}
-                          className="w-full h-full object-cover"
+                          className="w-12 h-12 object-contain"
                           onError={(e) => {
                             const target = e.currentTarget
                             target.style.display = 'none'

@@ -20,6 +20,7 @@ import AdminConcours from './pages/admin/AdminConcours'
 import AdminCentres from './pages/admin/AdminCentres'
 import AdminEnrollments from './pages/admin/AdminEnrollments'
 import EcoleManagement from './pages/admin/EcoleManagement'
+import CreateEcoleForm from './pages/admin/CreateEcoleForm'
 import DepartementManagement from './pages/admin/DepartementManagement'
 import FiliereManagement from './pages/admin/FiliereManagement'
 import CandidatStats from './pages/admin/CandidatStats'
@@ -81,6 +82,11 @@ function App() {
             <Route path="/admin/ecoles" element={
               <AdminRoute>
                 <EcoleManagement />
+              </AdminRoute>
+            } />
+            <Route path="/admin/ecoles/create" element={
+              <AdminRoute>
+                <CreateEcoleForm />
               </AdminRoute>
             } />
             <Route path="/admin/departements" element={
