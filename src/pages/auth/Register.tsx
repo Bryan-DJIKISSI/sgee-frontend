@@ -23,6 +23,7 @@ interface RegisterFormData {
   sexe: string
   nationalite: string
   adresse: string
+  telephone: string
   region_origine: string
   departement_origine: string
   num_cni: string
@@ -306,6 +307,25 @@ const Register = () => {
                     placeholder="Votre adresse"
                   />
                   {errors.adresse && <p className="mt-2 text-sm text-red-600">⚠ {errors.adresse.message}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Téléphone *
+                  </label>
+                  <input
+                    {...register('telephone', { 
+                      required: 'Le numéro de téléphone est requis',
+                      pattern: {
+                        value: /^[+]?[0-9\s-]{9,}$/,
+                        message: 'Numéro de téléphone invalide'
+                      }
+                    })}
+                    type="tel"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                    placeholder="+237 XXX XXX XXX"
+                  />
+                  {errors.telephone && <p className="mt-2 text-sm text-red-600">⚠ {errors.telephone.message}</p>}
                 </div>
               </div>
             </div>

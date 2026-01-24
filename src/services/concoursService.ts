@@ -9,6 +9,8 @@ interface ApiResponse<T> {
 export interface Concours {
   id_concours: number
   intitule: string
+  niveau?: string
+  cycle?: string
   description?: string
   date_debut: string
   date_fin: string

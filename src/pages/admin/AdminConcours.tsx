@@ -20,6 +20,8 @@ const AdminConcours = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [formData, setFormData] = useState({
     intitule: '',
+    niveau: '',
+    cycle: '',
     description: '',
     date_debut: '',
     date_fin: '',
@@ -82,6 +84,8 @@ const AdminConcours = () => {
     setEditingConcours(c)
     setFormData({
       intitule: c.intitule,
+      niveau: c.niveau || '',
+      cycle: c.cycle || '',
       description: c.description || '',
       date_debut: c.date_debut,
       date_fin: c.date_fin,
@@ -112,6 +116,8 @@ const AdminConcours = () => {
   const resetForm = () => {
     setFormData({
       intitule: '',
+      niveau: '',
+      cycle: '',
       description: '',
       date_debut: '',
       date_fin: '',
@@ -193,12 +199,12 @@ const AdminConcours = () => {
 
               <div className="grid md:grid-cols-4 gap-4 mb-4">
                 <div className="text-sm">
-                  <p className="text-gray-600">Date du concours</p>
-                  <p className="font-semibold">{new Date(c.date_debut).toLocaleDateString('fr-FR')}</p>
+                  <p className="text-gray-600">Niveau / Cycle</p>
+                  <p className="font-semibold">{c.niveau} - {c.cycle}</p>
                 </div>
                 <div className="text-sm">
-                  <p className="text-gray-600">Inscription avant</p>
-                  <p className="font-semibold">{new Date(c.date_limite_inscription).toLocaleDateString('fr-FR')}</p>
+                  <p className="text-gray-600">Date du concours</p>
+                  <p className="font-semibold">{new Date(c.date_debut).toLocaleDateString('fr-FR')}</p>
                 </div>
                 <div className="text-sm">
                   <p className="text-gray-600">Places</p>
@@ -296,6 +302,40 @@ const AdminConcours = () => {
                           {ecole.nom_ecole}
                         </option>
                       ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Niveau *
+                    </label>
+                    <select
+                      required
+                      value={formData.niveau}
+                      onChange={(e) => setFormData({ ...formData, niveau: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    >
+                      <option value="">Sélectionner un niveau</option>
+                      <option value="L1">L1 (Niveau 1)</option>
+                      <option value="L3">L3 (Niveau 3)</option>
+                      <option value="Master">Master</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Cycle *
+                    </label>
+                    <select
+                      required
+                      value={formData.cycle}
+                      onChange={(e) => setFormData({ ...formData, cycle: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    >
+                      <option value="">Sélectionner un cycle</option>
+                      <option value="BTS/Licence">BTS/Licence (Entrée Niveau 1)</option>
+                      <option value="Licence L3">Licence L3 (Entrée Niveau 3)</option>
+                      <option value="Master">Master</option>
                     </select>
                   </div>
 
