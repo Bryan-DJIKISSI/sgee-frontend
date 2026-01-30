@@ -4,6 +4,8 @@ import { toast } from 'react-toastify'
 import AdminLayout from '../../components/AdminLayout'
 import { concoursService, type Concours } from '../../services/concoursService'
 import { ecoleService } from '../../services/ecoleService'
+import { departementService } from '../../services/departementService'
+import { filiereService } from '../../services/filiereService'
 
 interface Ecole {
   id_ecole: number
@@ -11,9 +13,23 @@ interface Ecole {
   sigle?: string
 }
 
+interface Departement {
+  id_departement: number
+  intitule: string
+  code_depart: string
+}
+
+interface Filiere {
+  id_filiere: number
+  intitule: string
+  niveau: string
+}
+
 const AdminConcours = () => {
   const [concours, setConcours] = useState<Concours[]>([])
   const [ecoles, setEcoles] = useState<Ecole[]>([])
+  const [departements, setDepartements] = useState<Departement[]>([])
+  const [filieres, setFilieres] = useState<Filiere[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingConcours, setEditingConcours] = useState<Concours | null>(null)
@@ -29,6 +45,8 @@ const AdminConcours = () => {
     date_limite_paiement: '',
     date_limite_depot: '',
     id_ecole: '',
+    id_departement: '',
+    id_filiere: '',
     niveau_requis: '',
     frais_inscription: '',
     places_disponibles: '',
@@ -38,6 +56,45 @@ const AdminConcours = () => {
   useEffect(() => {
     loadData()
   }, [])
+
+  useEffect(() => {
+    if (formData.id_ecole) {
+      loadDepartements(formData.id_ecole)
+    } else {
+      setDepartements([])
+      setFilieres([])
+    }
+  }, [formData.id_ecole])
+
+  useEffect(() => {
+    if (formData.id_departement) {
+      loadFilieres(formData.id_departement)
+    } else {
+      setFilieres([])
+    }
+  }, [formData.id_departement])
+
+  const loadDepartements = async (ecoleId: string) => {
+    try {
+      const response = await ecoleService.getDepartements(parseInt(ecoleId))
+      if (response.success && response.data) {
+        setDepartements(response.data)
+      }
+    } catch (error) {
+      console.error('Erreur chargement départements:', error)
+    }
+  }
+
+  const loadFilieres = async (departementId: string) => {
+    try {
+      const response = await departementService.getFilieres(parseInt(departementId))
+      if (response.success && response.data) {
+        setFilieres(response.data)
+      }
+    } catch (error) {
+      console.error('Erreur chargement filières:', error)
+    }
+  }
 
   const loadData = async () => {
     try {
@@ -93,6 +150,8 @@ const AdminConcours = () => {
       date_limite_paiement: c.date_limite_paiement,
       date_limite_depot: c.date_limite_depot,
       id_ecole: c.id_ecole.toString(),
+      id_departement: c.id_departement?.toString() || '',
+      id_filiere: c.id_filiere?.toString() || '',
       niveau_requis: c.niveau_requis,
       frais_inscription: c.frais_inscription.toString(),
       places_disponibles: c.places_disponibles.toString(),
@@ -125,12 +184,16 @@ const AdminConcours = () => {
       date_limite_paiement: '',
       date_limite_depot: '',
       id_ecole: '',
+      id_departement: '',
+      id_filiere: '',
       niveau_requis: '',
       frais_inscription: '',
       places_disponibles: '',
       statut: 'ouvert',
     })
     setEditingConcours(null)
+    setDepartements([])
+    setFilieres([])
   }
 
   const filteredConcours = concours.filter(c =>
@@ -293,13 +356,55 @@ const AdminConcours = () => {
                     <select
                       required
                       value={formData.id_ecole}
-                      onChange={(e) => setFormData({ ...formData, id_ecole: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, id_ecole: e.target.value, id_departement: '', id_filiere: '' })
+                      }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                     >
                       <option value="">Sélectionner une école</option>
                       {ecoles.map((ecole) => (
                         <option key={ecole.id_ecole} value={ecole.id_ecole}>
                           {ecole.nom_ecole}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Département
+                    </label>
+                    <select
+                      value={formData.id_departement}
+                      onChange={(e) => {
+                        setFormData({ ...formData, id_departement: e.target.value, id_filiere: '' })
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                      disabled={!formData.id_ecole}
+                    >
+                      <option value="">Sélectionner un département</option>
+                      {departements.map((dept) => (
+                        <option key={dept.id_departement} value={dept.id_departement}>
+                          {dept.intitule}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Filière
+                    </label>
+                    <select
+                      value={formData.id_filiere}
+                      onChange={(e) => setFormData({ ...formData, id_filiere: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                      disabled={!formData.id_departement}
+                    >
+                      <option value="">Sélectionner une filière</option>
+                      {filieres.map((fil) => (
+                        <option key={fil.id_filiere} value={fil.id_filiere}>
+                          {fil.intitule} ({fil.niveau})
                         </option>
                       ))}
                     </select>

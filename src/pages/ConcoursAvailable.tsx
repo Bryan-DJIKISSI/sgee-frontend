@@ -25,10 +25,13 @@ const ConcoursAvailable = () => {
 
   const loadConcours = async () => {
     try {
+      console.log('🔄 Chargement des concours...')
       const response = await concoursService.getAvailable()
+      console.log('✅ Réponse API:', response)
+      console.log('📊 Nombre de concours:', response.data?.length || 0)
       setConcours(response.data || [])
     } catch (error) {
-      console.error('Erreur chargement concours:', error)
+      console.error('❌ Erreur chargement concours:', error)
       toast.error('Erreur lors du chargement des concours')
     } finally {
       setLoading(false)
@@ -110,7 +113,7 @@ const ConcoursAvailable = () => {
                         <School className="h-6 w-6 text-primary-600" />
                         <h3 className="text-xl font-bold text-gray-900">{c.intitule}</h3>
                       </div>
-                      <p className="text-gray-600 mb-2">{c.ecole.nom_ecole}</p>
+                      <p className="text-gray-600 mb-2">{c.ecole?.nom_ecole || 'École non spécifiée'}</p>
                       {c.description && (
                         <p className="text-sm text-gray-600">{c.description}</p>
                       )}
@@ -187,7 +190,7 @@ const ConcoursAvailable = () => {
                   </div>
 
                   {/* Action Button */}
-                  {inscriptionOpen ? (
+                  {inscriptionOpen && c.id_ecole ? (
                     <div className="flex items-center justify-between">
                       <div className="text-sm">
                         <span className="text-gray-600">Plus que </span>
@@ -201,6 +204,10 @@ const ConcoursAvailable = () => {
                         S'inscrire maintenant
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Link>
+                    </div>
+                  ) : inscriptionOpen && !c.id_ecole ? (
+                    <div className="text-center py-3 bg-amber-100 rounded-lg">
+                      <p className="text-amber-700 font-medium">École non configurée - Contactez l'administration</p>
                     </div>
                   ) : (
                     <div className="text-center py-3 bg-gray-100 rounded-lg">

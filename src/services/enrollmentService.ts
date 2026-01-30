@@ -29,7 +29,7 @@ export const enrollmentService = {
 
   // Admin only
   getAll: async (): Promise<ApiResponse<Enrollement[]>> => {
-    const response = await api.get<ApiResponse<Enrollement[]>>('/enrollements')
+    const response = await api.get<ApiResponse<Enrollement[]>>('/enrollements?per_page=all')
     return response.data
   },
 

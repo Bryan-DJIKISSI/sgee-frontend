@@ -124,30 +124,38 @@ const EnrollmentFormNew = () => {
 
   const loadDepartements = async (ecoleId: number) => {
     try {
+      console.log('🔄 Chargement des départements pour école:', ecoleId)
       const token = localStorage.getItem('token')
       const response = await fetch(`${import.meta.env.VITE_API_URL}/ecoles/${ecoleId}/departements`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const data = await response.json()
+      console.log('📊 Départements reçus:', data)
       if (data.success) {
         setDepartements(data.data || [])
+        console.log('✅ Départements chargés:', data.data?.length || 0)
       }
     } catch (error) {
+      console.error('❌ Erreur départements:', error)
       toast.error('Erreur lors du chargement des départements')
     }
   }
 
   const loadFilieres = async (departementId: number) => {
     try {
+      console.log('🔄 Chargement des filières pour département:', departementId)
       const token = localStorage.getItem('token')
       const response = await fetch(`${import.meta.env.VITE_API_URL}/departements/${departementId}/filieres`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const data = await response.json()
+      console.log('📊 Filières reçues:', data)
       if (data.success) {
         setFilieres(data.data || [])
+        console.log('✅ Filières chargées:', data.data?.length || 0)
       }
     } catch (error) {
+      console.error('❌ Erreur filières:', error)
       toast.error('Erreur lors du chargement des filières')
     }
   }

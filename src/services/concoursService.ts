@@ -18,10 +18,20 @@ export interface Concours {
   date_limite_paiement: string
   date_limite_depot: string
   id_ecole: number
+  id_departement?: number
+  id_filiere?: number
   ecole?: {
     id_ecole: number
     nom_ecole: string
     sigle?: string
+  }
+  departement?: {
+    id_departement: number
+    intitule: string
+  }
+  filiere?: {
+    id_filiere: number
+    intitule: string
   }
   niveau_requis: string
   frais_inscription: number
